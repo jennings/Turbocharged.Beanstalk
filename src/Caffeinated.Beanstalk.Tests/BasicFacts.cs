@@ -12,6 +12,8 @@ namespace Caffeinated.Beanstalk.Tests
     public class BasicFacts
     {
         BeanstalkConnection conn;
+        IConsumer cons;
+        IProducer prod;
 
         public BasicFacts()
         {
@@ -19,6 +21,8 @@ namespace Caffeinated.Beanstalk.Tests
             var port = Convert.ToInt32(ConfigurationManager.AppSettings["Port"]);
             conn = new BeanstalkConnection(hostname, port);
             conn.Connect();
+            cons = conn.AsConsumer();
+            prod = conn.AsProducer();
         }
 
         [Theory]
@@ -27,8 +31,8 @@ namespace Caffeinated.Beanstalk.Tests
         [InlineData(255)]
         public async Task CanPutAndPeekAJob(byte data)
         {
-            var id = await conn.PutAsync(new byte[] { data }, 1, 0, 10);
-            var job = await conn.PeekAsync(id);
+            var id = await prod.PutAsync(new byte[] { data }, 1, 0, 10);
+            var job = await prod.PeekAsync(id);
             Assert.Equal(id, job.Id);
             Assert.Equal(data, job.JobData[0]);
         }
@@ -36,8 +40,8 @@ namespace Caffeinated.Beanstalk.Tests
         [Fact]
         public async Task CanReserveAJob()
         {
-            await conn.PutAsync(new byte[] { 2 }, 1, 0, 10);
-            var job = await conn.ReserveAsync();
+            await prod.PutAsync(new byte[] { 2 }, 1, 0, 10);
+            var job = await cons.ReserveAsync();
             Assert.NotNull(job);
         }
 

@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Caffeinated.Beanstalk
 {
-    public sealed class BeanstalkConnection : IDisposable
+    public sealed class BeanstalkConnection : IProducer, IConsumer, IDisposable
     {
         string _hostname;
         int _port;
@@ -43,7 +43,19 @@ namespace Caffeinated.Beanstalk
             Close();
         }
 
-        public async Task<string> Use(string tube)
+        public IProducer AsProducer()
+        {
+            return this;
+        }
+
+        public IConsumer AsConsumer()
+        {
+            return this;
+        }
+
+        #region Producer
+
+        async Task<string> IProducer.Use(string tube)
         {
             var tcs = new TaskCompletionSource<string>();
             var request = new UseRequest(tube, tcs);
@@ -51,7 +63,7 @@ namespace Caffeinated.Beanstalk
             return await tcs.Task.ConfigureAwait(false);
         }
 
-        public async Task<int> PutAsync(byte[] job, int priority, int delay, int ttr)
+        async Task<int> IProducer.PutAsync(byte[] job, int priority, int delay, int ttr)
         {
             var tcs = new TaskCompletionSource<int>();
             var request = new PutRequest(tcs)
@@ -65,7 +77,7 @@ namespace Caffeinated.Beanstalk
             return await tcs.Task.ConfigureAwait(false);
         }
 
-        public async Task<JobDescription> PeekAsync(JobStatus status)
+        async Task<JobDescription> IProducer.PeekAsync(JobStatus status)
         {
             var tcs = new TaskCompletionSource<JobDescription>();
             var request = new PeekRequest(status, tcs);
@@ -73,7 +85,7 @@ namespace Caffeinated.Beanstalk
             return await tcs.Task.ConfigureAwait(false);
         }
 
-        public async Task<JobDescription> PeekAsync(int id)
+        async Task<JobDescription> IProducer.PeekAsync(int id)
         {
             var tcs = new TaskCompletionSource<JobDescription>();
             var request = new PeekRequest(id, tcs);
@@ -81,7 +93,11 @@ namespace Caffeinated.Beanstalk
             return await tcs.Task.ConfigureAwait(false);
         }
 
-        public async Task<JobDescription> ReserveAsync(TimeSpan timeout)
+        #endregion
+
+        #region Consumer
+
+        async Task<JobDescription> IConsumer.ReserveAsync(TimeSpan timeout)
         {
             var tcs = new TaskCompletionSource<JobDescription>();
             var request = new ReserveRequest(timeout, tcs);
@@ -89,12 +105,19 @@ namespace Caffeinated.Beanstalk
             return await tcs.Task.ConfigureAwait(false);
         }
 
-        public async Task<JobDescription> ReserveAsync()
+        async Task<JobDescription> IConsumer.ReserveAsync()
         {
             var tcs = new TaskCompletionSource<JobDescription>();
             var request = new ReserveRequest(tcs);
             await _connection.SendAsync(request).ConfigureAwait(false);
             return await tcs.Task.ConfigureAwait(false);
         }
+
+        Task<JobDescription> IConsumer.PeekAsync(int id)
+        {
+            return ((IProducer)this).PeekAsync(id);
+        }
+
+        #endregion
     }
 }
