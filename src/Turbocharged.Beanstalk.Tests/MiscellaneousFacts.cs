@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Caffeinated.Beanstalk.Tests
+namespace Turbocharged.Beanstalk.Tests
 {
     public class MiscellaneousFacts
     {

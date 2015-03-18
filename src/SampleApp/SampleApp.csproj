@@ -78,9 +78,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Caffeinated.Beanstalk\Caffeinated.Beanstalk.csproj">
+    <ProjectReference Include="..\Turbocharged.Beanstalk\Turbocharged.Beanstalk.csproj">
       <Project>{44fcde9f-74f8-42f7-8984-01345124367a}</Project>
-      <Name>Caffeinated.Beanstalk</Name>
+      <Name>Turbocharged.Beanstalk</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

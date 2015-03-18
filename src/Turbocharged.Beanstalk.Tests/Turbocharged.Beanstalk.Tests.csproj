@@ -9,8 +9,8 @@
     <ProjectGuid>{BE5E1CD1-D669-4C2E-8D69-FA0BC4B7B1E6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Caffeinated.Beanstalk.Tests</RootNamespace>
-    <AssemblyName>Caffeinated.Beanstalk.Tests</AssemblyName>
+    <RootNamespace>Turbocharged.Beanstalk.Tests</RootNamespace>
+    <AssemblyName>Turbocharged.Beanstalk.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>18b19064</NuGetPackageImportStamp>
@@ -62,9 +62,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Caffeinated.Beanstalk\Caffeinated.Beanstalk.csproj">
+    <ProjectReference Include="..\Turbocharged.Beanstalk\Turbocharged.Beanstalk.csproj">
       <Project>{44fcde9f-74f8-42f7-8984-01345124367a}</Project>
-      <Name>Caffeinated.Beanstalk</Name>
+      <Name>Turbocharged.Beanstalk</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

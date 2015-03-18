@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Caffeinated.Beanstalk.Tests
+namespace Turbocharged.Beanstalk.Tests
 {
     public class BasicFacts
     {
@@ -48,12 +48,15 @@ namespace Caffeinated.Beanstalk.Tests
         [Fact]
         public async Task UseWorksCorrectly()
         {
+            // Put something in a tube
+            await prod.Use("default");
+            await prod.PutAsync(new byte[] { 3 }, 1, 0, 10);
+
+            // Verify an empty tube is empty
             await prod.Use("empty");
             await Assert.ThrowsAnyAsync<Exception>(async () => { await prod.PeekAsync(); });
 
-            await prod.Use("used");
-            await prod.PutAsync(new byte[] { 3 }, 1, 0, 10);
-
+            // Verify we see it now
             var job = await prod.PeekAsync();
             Assert.NotNull(job);
         }

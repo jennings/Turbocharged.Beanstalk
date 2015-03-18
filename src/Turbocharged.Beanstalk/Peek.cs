@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Caffeinated.Beanstalk
+namespace Turbocharged.Beanstalk
 {
     class PeekRequest : Request
     {
@@ -56,25 +56,12 @@ namespace Caffeinated.Beanstalk
                 case "FOUND":
                     var id = Convert.ToInt32(parts[1]);
                     var bytes = Convert.ToInt32(parts[2]);
-                    var buffer = new byte[bytes];
-                    var readBytes = stream.Read(buffer, 0, bytes);
-                    if (readBytes != bytes)
-                    {
-                        // TODO: Now what, genius?
-                    }
-                    stream.ReadByte(); // CR
-                    stream.ReadByte(); // LF
-
-                    var descr = new JobDescription
-                    {
-                        Id = id,
-                        JobData = buffer,
-                    };
+                    var descr = ReserveRequest.GetJobDescriptionFromBuffer(id, stream, bytes);
                     _tcs.SetResult(descr);
                     return;
 
                 case "NOT_FOUND":
-                    _tcs.SetException(new InvalidOperationException("Deadline soon"));
+                    _tcs.SetResult(null);
                     return;
 
                 default:

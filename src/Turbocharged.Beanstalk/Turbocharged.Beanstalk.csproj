@@ -7,8 +7,8 @@
     <ProjectGuid>{44FCDE9F-74F8-42F7-8984-01345124367A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Caffeinated.Beanstalk</RootNamespace>
-    <AssemblyName>Caffeinated.Beanstalk</AssemblyName>
+    <RootNamespace>Turbocharged.Beanstalk</RootNamespace>
+    <AssemblyName>Turbocharged.Beanstalk</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

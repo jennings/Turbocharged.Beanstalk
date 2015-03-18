@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Caffeinated.Beanstalk
+namespace Turbocharged.Beanstalk
 {
     public interface IConsumer
     {

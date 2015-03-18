@@ -1,5 +1,5 @@
-Caffeinated.Beanstalk
-=====================
+Turbocharged.Beanstalk
+======================
 
 A .NET library for using [Beanstalk][beanstalk].
 

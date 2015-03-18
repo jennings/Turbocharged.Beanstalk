@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Caffeinated.Beanstalk", "Caffeinated.Beanstalk\Caffeinated.Beanstalk.csproj", "{44FCDE9F-74F8-42F7-8984-01345124367A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Turbocharged.Beanstalk", "Turbocharged.Beanstalk\Turbocharged.Beanstalk.csproj", "{44FCDE9F-74F8-42F7-8984-01345124367A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{51310B37-17B5-47B3-A414-CBC09B46FC06}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Caffeinated.Beanstalk.Tests", "Caffeinated.Beanstalk.Tests\Caffeinated.Beanstalk.Tests.csproj", "{BE5E1CD1-D669-4C2E-8D69-FA0BC4B7B1E6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Turbocharged.Beanstalk.Tests", "Turbocharged.Beanstalk.Tests\Turbocharged.Beanstalk.Tests.csproj", "{BE5E1CD1-D669-4C2E-8D69-FA0BC4B7B1E6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApp", "SampleApp\SampleApp.csproj", "{C0FF45ED-3EF9-4FC2-92D0-C5302AA2EB9D}"
 EndProject

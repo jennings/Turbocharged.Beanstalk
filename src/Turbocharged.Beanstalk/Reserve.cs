@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Caffeinated.Beanstalk
+namespace Turbocharged.Beanstalk
 {
     class ReserveRequest : Request
     {
@@ -69,6 +69,24 @@ namespace Caffeinated.Beanstalk
                     _tcs.SetException(new Exception("Unknown failure"));
                     return;
             }
+        }
+
+        internal static JobDescription GetJobDescriptionFromBuffer(int id, NetworkStream stream, int bytes)
+        {
+            var buffer = new byte[bytes];
+            var readBytes = stream.Read(buffer, 0, bytes);
+            if (readBytes != bytes)
+            {
+                // TODO: Now what, genius?
+            }
+            stream.ReadByte(); // CR
+            stream.ReadByte(); // LF
+
+            return new JobDescription
+            {
+                Id = id,
+                JobData = buffer,
+            };
         }
     }
 }

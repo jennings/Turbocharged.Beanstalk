@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace Caffeinated.Beanstalk
+namespace Turbocharged.Beanstalk
 {
     public class JobDescription
     {

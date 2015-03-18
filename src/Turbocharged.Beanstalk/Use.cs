@@ -5,15 +5,15 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Caffeinated.Beanstalk
+namespace Turbocharged.Beanstalk
 {
-    class WatchRequest : Request
+    class UseRequest : Request
     {
         public string Tube { get; set; }
 
-        TaskCompletionSource<int> _tcs;
+        TaskCompletionSource<string> _tcs;
 
-        public WatchRequest(string tube, TaskCompletionSource<int> tcs)
+        public UseRequest(string tube, TaskCompletionSource<string> tcs)
         {
             if (tube == null)
                 throw new InvalidOperationException("Tube must not be null");
@@ -24,21 +24,20 @@ namespace Caffeinated.Beanstalk
 
         public byte[] ToByteArray()
         {
-            return "watch {0}\r\n".FormatWith(Tube)
+            return "use {0}\r\n".FormatWith(Tube)
                 .ToASCIIByteArray();
         }
 
         public void Process(string firstLine, NetworkStream stream)
         {
             var parts = firstLine.Split(' ');
-            if (parts.Length == 2 && parts[0] == "WATCHING")
+            if (parts.Length == 2 && parts[0] == "USING")
             {
-                var num = Convert.ToInt32(parts[1]);
-                _tcs.SetResult(num);
+                _tcs.SetResult(parts[1]);
             }
             else
             {
-                _tcs.SetException(new Exception("Unknown watch response"));
+                _tcs.SetException(new Exception("Unknown use response"));
             }
         }
     }
