@@ -65,11 +65,27 @@ namespace Caffeinated.Beanstalk
             return await tcs.Task.ConfigureAwait(false);
         }
 
+        public async Task<JobDescription> PeekAsync(JobStatus status)
+        {
+            var tcs = new TaskCompletionSource<JobDescription>();
+            var request = new PeekRequest(status, tcs);
+            await _connection.SendAsync(request).ConfigureAwait(false);
+            return await tcs.Task.ConfigureAwait(false);
+        }
+
         public async Task<JobDescription> PeekAsync(int id)
         {
             var tcs = new TaskCompletionSource<JobDescription>();
             var request = new PeekRequest(id, tcs);
-            await _connection.SendAsync(request);
+            await _connection.SendAsync(request).ConfigureAwait(false);
+            return await tcs.Task.ConfigureAwait(false);
+        }
+
+        public async Task<JobDescription> ReserveAsync(TimeSpan timeout)
+        {
+            var tcs = new TaskCompletionSource<JobDescription>();
+            var request = new ReserveRequest(timeout, tcs);
+            await _connection.SendAsync(request).ConfigureAwait(false);
             return await tcs.Task.ConfigureAwait(false);
         }
 
@@ -77,7 +93,7 @@ namespace Caffeinated.Beanstalk
         {
             var tcs = new TaskCompletionSource<JobDescription>();
             var request = new ReserveRequest(tcs);
-            await _connection.SendAsync(request);
+            await _connection.SendAsync(request).ConfigureAwait(false);
             return await tcs.Task.ConfigureAwait(false);
         }
     }

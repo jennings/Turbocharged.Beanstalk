@@ -16,10 +16,12 @@ namespace Caffeinated.Beanstalk
         public int TimeToRun { get; set; }
         public byte[] Job { get; set; }
 
+        TaskCompletionSource<int> _tcs;
+
         public PutRequest(TaskCompletionSource<int> tcs)
         {
             TimeToRun = 60;
-            ResponseProcessor = new PutResponseProcessor(tcs);
+            _tcs = tcs;
         }
 
         public byte[] ToByteArray()
@@ -36,45 +38,33 @@ namespace Caffeinated.Beanstalk
                 .ToArray();
         }
 
-        public ResponseProcessor ResponseProcessor { get; set; }
-
-        class PutResponseProcessor : ResponseProcessor
+        public void Process(string firstLine, NetworkStream stream)
         {
-            TaskCompletionSource<int> _completionSource;
-
-            public PutResponseProcessor(TaskCompletionSource<int> completionSource)
+            var parts = firstLine.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+            switch (parts[0])
             {
-                _completionSource = completionSource;
-            }
+                case "INSERTED":
+                    var id = Convert.ToInt32(parts[1]);
+                    _tcs.SetResult(id);
+                    return;
 
-            public void Process(string firstLine, NetworkStream stream)
-            {
-                var parts = firstLine.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
-                switch (parts[0])
-                {
-                    case "INSERTED":
-                        var id = Convert.ToInt32(parts[1]);
-                        _completionSource.SetResult(id);
-                        return;
+                case "BURIED":
+                    var buriedId = Convert.ToInt32(parts[1]);
+                    _tcs.SetResult(buriedId);
+                    return;
 
-                    case "BURIED":
-                        var buriedId = Convert.ToInt32(parts[1]);
-                        _completionSource.SetResult(buriedId);
-                        return;
+                case "JOB_TOO_BIG":
+                    _tcs.SetException(new InvalidOperationException("Server is draining"));
+                    return;
 
-                    case "JOB_TOO_BIG":
-                        _completionSource.SetException(new InvalidOperationException("Server is draining"));
-                        return;
+                case "DRAINING":
+                    _tcs.SetException(new InvalidOperationException("Server is draining"));
+                    return;
 
-                    case "DRAINING":
-                        _completionSource.SetException(new InvalidOperationException("Server is draining"));
-                        return;
-
-                    case "EXPECTED_CRLF":
-                    default:
-                        _completionSource.SetException(new InvalidOperationException("Unknown response: "+ parts[0]));
-                        return;
-                }
+                case "EXPECTED_CRLF":
+                default:
+                    _tcs.SetException(new InvalidOperationException("Unknown response: " + parts[0]));
+                    return;
             }
         }
     }

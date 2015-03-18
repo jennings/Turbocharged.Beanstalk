@@ -11,9 +11,12 @@ namespace Caffeinated.Beanstalk
     {
         public string Tube { get; set; }
 
+        TaskCompletionSource<string> _tcs;
+
         public UseRequest(string tube, TaskCompletionSource<string> tcs)
         {
-            ResponseProcessor = new UseResponseProcessor(tcs);
+            Tube = tube;
+            _tcs = tcs;
         }
 
         public byte[] ToByteArray()
@@ -25,28 +28,16 @@ namespace Caffeinated.Beanstalk
                 .ToASCIIByteArray();
         }
 
-        public ResponseProcessor ResponseProcessor { get; set; }
-
-        class UseResponseProcessor : ResponseProcessor
+        public void Process(string firstLine, NetworkStream stream)
         {
-            TaskCompletionSource<string> _completionSource;
-
-            public UseResponseProcessor(TaskCompletionSource<string> completionSource)
+            var parts = firstLine.Split(' ');
+            if (parts.Length != 2)
             {
-                _completionSource = completionSource;
+                _tcs.SetException(new Exception("Unknown use response"));
             }
-
-            public void Process(string firstLine, NetworkStream stream)
+            else
             {
-                var parts = firstLine.Split(' ');
-                if (parts.Length != 2)
-                {
-                    _completionSource.SetException(new Exception("Unknown use response"));
-                }
-                else
-                {
-                    _completionSource.SetResult(parts[1]);
-                }
+                _tcs.SetResult(parts[1]);
             }
         }
     }

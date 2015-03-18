@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Conversions.cs" />
+    <Compile Include="JobStatus.cs" />
     <Compile Include="PhysicalConnection.cs" />
     <Compile Include="Peek.cs" />
     <Compile Include="Reserve.cs" />

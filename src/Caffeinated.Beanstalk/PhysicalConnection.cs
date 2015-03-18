@@ -56,12 +56,11 @@ namespace Caffeinated.Beanstalk
 
         public async Task ReceiveAsync()
         {
-            // This isn't right. I think it's going to block a thread-pool thread.
-            // * I don't want a dedicated thread for this
-            // * If this is a task, then it needs to await something
-            // * StreamReader munges non-ASCII characters in job data
-            // * BinaryReader doesn't have Async methods, so it just blocks the thread
-            // await Task.Yield();
+            // So this is kind of dumb. But since I can't use a
+            // StreamReader (can't get raw bytes out of it) or
+            // a BinaryReader (no async methods), I'm reading one
+            // character at a time so I don't read too much
+            // (can't seek a NetworkStream).
 
             var max = 100;
             byte[] buffer = new byte[max];
@@ -79,7 +78,7 @@ namespace Caffeinated.Beanstalk
                     try
                     {
                         var request = _requestsAwaitingResponse.Take();
-                        request.ResponseProcessor.Process(incoming, _stream);
+                        request.Process(incoming, _stream);
                         pos = -1;
                     }
                     catch (Exception ex)
