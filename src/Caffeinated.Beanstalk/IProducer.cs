@@ -11,6 +11,7 @@ namespace Caffeinated.Beanstalk
         Task<string> Use(string tube);
         Task<int> PutAsync(byte[] job, int priority, int delay, int ttr);
         Task<JobDescription> PeekAsync(int id);
+        Task<JobDescription> PeekAsync();
         Task<JobDescription> PeekAsync(JobStatus status);
     }
 }

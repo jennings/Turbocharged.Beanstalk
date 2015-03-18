@@ -77,6 +77,11 @@ namespace Caffeinated.Beanstalk
             return await tcs.Task.ConfigureAwait(false);
         }
 
+        Task<JobDescription> IProducer.PeekAsync()
+        {
+            return ((IProducer)this).PeekAsync(JobStatus.Ready);
+        }
+
         async Task<JobDescription> IProducer.PeekAsync(JobStatus status)
         {
             var tcs = new TaskCompletionSource<JobDescription>();
