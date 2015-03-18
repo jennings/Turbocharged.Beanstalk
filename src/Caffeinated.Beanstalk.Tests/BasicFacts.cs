@@ -46,6 +46,19 @@ namespace Caffeinated.Beanstalk.Tests
         }
 
         [Fact]
+        public async Task UseWorksCorrectly()
+        {
+            await prod.Use("empty");
+            await Assert.ThrowsAnyAsync<Exception>(async () => { await prod.PeekAsync(); });
+
+            await prod.Use("used");
+            await prod.PutAsync(new byte[] { 3 }, 1, 0, 10);
+
+            var job = await prod.PeekAsync();
+            Assert.NotNull(job);
+        }
+
+        [Fact]
         public async Task WatchAndIgnoreWorksCorrectly()
         {
             // Put something in an ignored tube
