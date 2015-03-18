@@ -97,6 +97,22 @@ namespace Caffeinated.Beanstalk
 
         #region Consumer
 
+        async Task<int> IConsumer.Watch(string tube)
+        {
+            var tcs = new TaskCompletionSource<int>();
+            var request = new WatchRequest(tube, tcs);
+            await _connection.SendAsync(request);
+            return await tcs.Task.ConfigureAwait(false);
+        }
+
+        async Task<int> IConsumer.Ignore(string tube)
+        {
+            var tcs = new TaskCompletionSource<int>();
+            var request = new IgnoreRequest(tube, tcs);
+            await _connection.SendAsync(request);
+            return await tcs.Task.ConfigureAwait(false);
+        }
+
         async Task<JobDescription> IConsumer.ReserveAsync(TimeSpan timeout)
         {
             var tcs = new TaskCompletionSource<JobDescription>();

@@ -46,14 +46,24 @@ namespace Caffeinated.Beanstalk.Tests
         }
 
         [Fact]
-        public async Task UseWorksCorrectly()
+        public async Task WatchAndIgnoreWorksCorrectly()
         {
-            await conn.Use("default");
-            await conn.PutAsync(new byte[] { 11 }, 1, 0, 10);
-            await conn.Use("empty");
-            await Assert.ThrowsAnyAsync<Exception>(async () => { await conn.PeekAsync(JobStatus.Ready); });
-            await conn.Use("default");
-            Assert.NotNull(await conn.PeekAsync(JobStatus.Ready));
+            // Put something in an ignored tube
+            await prod.Use("ignored");
+            await prod.PutAsync(new byte[] { 11 }, 1, 0, 10);
+
+            // Verify we can't see it if we ignore
+            await Task.WhenAll(
+                cons.Watch("empty"),
+                cons.Ignore("default"),
+                cons.Ignore("ignored"));
+            await Assert.ThrowsAnyAsync<TimeoutException>(async () => { await cons.ReserveAsync(TimeSpan.Zero); });
+
+            // Prove we can see it if we watch the tube again
+            await Task.WhenAll(
+                cons.Watch("ignored"),
+                cons.Ignore("empty"));
+            Assert.NotNull(await cons.ReserveAsync());
         }
     }
 }

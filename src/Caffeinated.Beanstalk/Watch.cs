@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace Caffeinated.Beanstalk
 {
-    class UseRequest : Request
+    class WatchRequest : Request
     {
         public string Tube { get; set; }
 
-        TaskCompletionSource<string> _tcs;
+        TaskCompletionSource<int> _tcs;
 
-        public UseRequest(string tube, TaskCompletionSource<string> tcs)
+        public WatchRequest(string tube, TaskCompletionSource<int> tcs)
         {
             if (tube == null)
                 throw new InvalidOperationException("Tube must not be null");
@@ -24,20 +24,21 @@ namespace Caffeinated.Beanstalk
 
         public byte[] ToByteArray()
         {
-            return "use {0}\r\n".FormatWith(Tube)
+            return "watch {0}\r\n".FormatWith(Tube)
                 .ToASCIIByteArray();
         }
 
         public void Process(string firstLine, NetworkStream stream)
         {
             var parts = firstLine.Split(' ');
-            if (parts.Length != 2)
+            if (parts.Length == 2 && parts[0] == "WATCHING")
             {
-                _tcs.SetException(new Exception("Unknown use response"));
+                var num = Convert.ToInt32(parts[1]);
+                _tcs.SetResult(num);
             }
             else
             {
-                _tcs.SetResult(parts[1]);
+                _tcs.SetException(new Exception("Unknown watch response"));
             }
         }
     }
