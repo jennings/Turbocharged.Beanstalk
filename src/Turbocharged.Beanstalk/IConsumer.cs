@@ -12,14 +12,14 @@ namespace Turbocharged.Beanstalk
         /// Reserve a job, waiting indefinitely.
         /// </summary>
         /// <returns>A reserved job.</returns>
-        Task<JobDescription> ReserveAsync();
+        Task<Job> ReserveAsync();
 
         /// <summary>
         /// Reserve a job, waiting for the specified timeout.
         /// </summary>
         /// <param name="timeout"></param>
         /// <returns>A reserved job, or null if the timeout elapses.</returns>
-        Task<JobDescription> ReserveAsync(TimeSpan timeout);
+        Task<Job> ReserveAsync(TimeSpan timeout);
 
         /// <summary>
         /// Begins watching a tube.
@@ -43,6 +43,6 @@ namespace Turbocharged.Beanstalk
         /// Retrives a job without reserving it.
         /// </summary>
         /// <returns>A job, or null if the job was not found.</returns>
-        Task<JobDescription> PeekAsync(int id);
+        Task<Job> PeekAsync(int id);
     }
 }

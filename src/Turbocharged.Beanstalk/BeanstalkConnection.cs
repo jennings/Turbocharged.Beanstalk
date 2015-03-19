@@ -79,18 +79,18 @@ namespace Turbocharged.Beanstalk
             return SendAndGetResult(request);
         }
 
-        Task<JobDescription> IProducer.PeekAsync()
+        Task<Job> IProducer.PeekAsync()
         {
             return ((IProducer)this).PeekAsync(JobStatus.Ready);
         }
 
-        Task<JobDescription> IProducer.PeekAsync(JobStatus status)
+        Task<Job> IProducer.PeekAsync(JobStatus status)
         {
             var request = new PeekRequest(status);
             return SendAndGetResult(request);
         }
 
-        Task<JobDescription> IProducer.PeekAsync(int id)
+        Task<Job> IProducer.PeekAsync(int id)
         {
             var request = new PeekRequest(id);
             return SendAndGetResult(request);
@@ -118,19 +118,19 @@ namespace Turbocharged.Beanstalk
             return SendAndGetResult(request);
         }
 
-        Task<JobDescription> IConsumer.ReserveAsync(TimeSpan timeout)
+        Task<Job> IConsumer.ReserveAsync(TimeSpan timeout)
         {
             var request = new ReserveRequest(timeout);
             return SendAndGetResult(request);
         }
 
-        Task<JobDescription> IConsumer.ReserveAsync()
+        Task<Job> IConsumer.ReserveAsync()
         {
             var request = new ReserveRequest();
             return SendAndGetResult(request);
         }
 
-        Task<JobDescription> IConsumer.PeekAsync(int id)
+        Task<Job> IConsumer.PeekAsync(int id)
         {
             return ((IProducer)this).PeekAsync(id);
         }

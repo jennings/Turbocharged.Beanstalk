@@ -11,9 +11,9 @@ using Newtonsoft.Json;
 
 namespace Turbocharged.Beanstalk
 {
-    public class JobDescription
+    public class Job
     {
         public int Id { get; internal set; }
-        public byte[] JobData { get; internal set; }
+        public byte[] Data { get; internal set; }
     }
 }

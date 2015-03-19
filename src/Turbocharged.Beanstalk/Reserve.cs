@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    class ReserveRequest : Request<JobDescription>
+    class ReserveRequest : Request<Job>
     {
-        public Task<JobDescription> Task { get { return _tcs.Task; } }
+        public Task<Job> Task { get { return _tcs.Task; } }
 
-        TaskCompletionSource<JobDescription> _tcs = new TaskCompletionSource<JobDescription>();
+        TaskCompletionSource<Job> _tcs = new TaskCompletionSource<Job>();
         TimeSpan? _timeout;
 
         public ReserveRequest(TimeSpan timeout)
@@ -49,10 +49,10 @@ namespace Turbocharged.Beanstalk
                     stream.ReadByte(); // CR
                     stream.ReadByte(); // LF
 
-                    var descr = new JobDescription
+                    var descr = new Job
                     {
                         Id = id,
-                        JobData = buffer,
+                        Data = buffer,
                     };
                     _tcs.SetResult(descr);
                     return;
@@ -72,7 +72,7 @@ namespace Turbocharged.Beanstalk
             }
         }
 
-        internal static JobDescription GetJobDescriptionFromBuffer(int id, NetworkStream stream, int bytes)
+        internal static Job GetJobDescriptionFromBuffer(int id, NetworkStream stream, int bytes)
         {
             var buffer = new byte[bytes];
             var readBytes = stream.Read(buffer, 0, bytes);
@@ -83,10 +83,10 @@ namespace Turbocharged.Beanstalk
             stream.ReadByte(); // CR
             stream.ReadByte(); // LF
 
-            return new JobDescription
+            return new Job
             {
                 Id = id,
-                JobData = buffer,
+                Data = buffer,
             };
         }
     }

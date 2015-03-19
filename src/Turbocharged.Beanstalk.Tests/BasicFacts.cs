@@ -34,7 +34,7 @@ namespace Turbocharged.Beanstalk.Tests
             var id = await prod.PutAsync(new byte[] { data }, 1, 0, 10);
             var job = await prod.PeekAsync(id);
             Assert.Equal(id, job.Id);
-            Assert.Equal(data, job.JobData[0]);
+            Assert.Equal(data, job.Data[0]);
         }
 
         [Fact]

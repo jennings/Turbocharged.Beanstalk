@@ -68,7 +68,7 @@
     <Compile Include="Use.cs" />
     <Compile Include="Request.cs" />
     <Compile Include="System\Disposable.cs" />
-    <Compile Include="JobDescription.cs" />
+    <Compile Include="Job.cs" />
     <Compile Include="BeanstalkConnection.cs" />
     <Compile Include="Put.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

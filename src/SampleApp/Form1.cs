@@ -58,7 +58,7 @@ namespace SampleApp
             var sb = new StringBuilder()
                 .AppendFormat("Reserved job {0} - ", job.Id);
 
-            foreach (var b in job.JobData)
+            foreach (var b in job.Data)
                 sb.AppendFormat("{0:X} ", b);
 
             sb.AppendLine();

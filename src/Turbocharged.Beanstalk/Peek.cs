@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    class PeekRequest : Request<JobDescription>
+    class PeekRequest : Request<Job>
     {
-        public Task<JobDescription> Task { get { return _tcs.Task; } }
+        public Task<Job> Task { get { return _tcs.Task; } }
         public int? Id { get; set; }
         public JobStatus Status { get; set; }
 
-        TaskCompletionSource<JobDescription> _tcs = new TaskCompletionSource<JobDescription>();
+        TaskCompletionSource<Job> _tcs = new TaskCompletionSource<Job>();
 
         public PeekRequest(JobStatus status)
         {

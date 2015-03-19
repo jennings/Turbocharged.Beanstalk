@@ -33,18 +33,18 @@ namespace Turbocharged.Beanstalk
         /// Retrives a job without reserving it.
         /// </summary>
         /// <returns>A job, or null if the job was not found.</returns>
-        Task<JobDescription> PeekAsync(int id);
+        Task<Job> PeekAsync(int id);
 
         /// <summary>
         /// Retrives the first job from the Ready state in the currently-used tube.
         /// </summary>
         /// <returns>A job, or null if there are no jobs in the Ready state.</returns>
-        Task<JobDescription> PeekAsync();
+        Task<Job> PeekAsync();
 
         /// <summary>
         /// Retrives the first job from the specified state in the currently-used tube.
         /// </summary>
         /// <returns>A job, or null if no jobs are in the specified state.</returns>
-        Task<JobDescription> PeekAsync(JobStatus status);
+        Task<Job> PeekAsync(JobStatus status);
     }
 }
