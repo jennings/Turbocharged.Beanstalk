@@ -117,5 +117,17 @@ namespace Turbocharged.Beanstalk.Tests
             Assert.Null(await prod.PeekAsync(JobStatus.Delayed));
             Assert.Null(await prod.PeekAsync(JobStatus.Buried));
         }
+
+        [Fact]
+        public async Task JobStatisticsWork()
+        {
+            await ConnectAsync();
+            var id = await prod.PutAsync(new byte[] { 41 }, 42, 0, 43);
+            var stats = await cons.JobStatisticsAsync(id);
+            Assert.Equal(id, stats.Id);
+            Assert.Equal(42, stats.Priority);
+            Assert.Equal(43, (int)stats.TimeToRun.TotalSeconds);
+            Assert.Equal(JobStatus.Ready, stats.State);
+        }
     }
 }

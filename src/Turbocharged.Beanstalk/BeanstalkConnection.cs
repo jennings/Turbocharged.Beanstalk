@@ -126,6 +126,12 @@ namespace Turbocharged.Beanstalk
             return ((IProducer)this).PeekAsync(id);
         }
 
+        Task<JobStatistics> IConsumer.JobStatisticsAsync(int id)
+        {
+            var request = new JobStatisticsRequest(id);
+            return SendAndGetResult(request);
+        }
+
         #endregion
 
         async Task<T> SendAndGetResult<T>(Request<T> request)

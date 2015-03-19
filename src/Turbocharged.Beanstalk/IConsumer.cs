@@ -22,6 +22,11 @@ namespace Turbocharged.Beanstalk
         Task<Job> ReserveAsync(TimeSpan timeout);
 
         /// <summary>
+        /// Returns statistics about a specified job.
+        /// </summary>
+        Task<JobStatistics> JobStatisticsAsync(int id);
+
+        /// <summary>
         /// Begins watching a tube.
         /// </summary>
         /// <returns>The number of tubes currently being watched.</returns>
