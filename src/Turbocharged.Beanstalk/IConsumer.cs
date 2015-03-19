@@ -27,6 +27,11 @@ namespace Turbocharged.Beanstalk
         Task<JobStatistics> JobStatisticsAsync(int id);
 
         /// <summary>
+        /// Retrieves statistics about the specified tube.
+        /// </summary>
+        Task<TubeStatistics> TubeStatisticsAsync(string tube);
+
+        /// <summary>
         /// Begins watching a tube.
         /// </summary>
         /// <returns>The number of tubes currently being watched.</returns>

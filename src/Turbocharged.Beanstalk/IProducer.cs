@@ -46,5 +46,10 @@ namespace Turbocharged.Beanstalk
         /// </summary>
         /// <returns>A job, or null if no jobs are in the specified state.</returns>
         Task<Job> PeekAsync(JobStatus status);
+
+        /// <summary>
+        /// Retrieves statistics about the specified tube.
+        /// </summary>
+        Task<TubeStatistics> TubeStatisticsAsync(string tube);
     }
 }

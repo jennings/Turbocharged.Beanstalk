@@ -39,6 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TubeStatistics.cs" />
     <Compile Include="JobStatistics.cs" />
     <Compile Include="System\EncodingExtensions.cs" />
     <Compile Include="IConsumer.cs" />

@@ -129,5 +129,22 @@ namespace Turbocharged.Beanstalk.Tests
             Assert.Equal(43, (int)stats.TimeToRun.TotalSeconds);
             Assert.Equal(JobStatus.Ready, stats.State);
         }
+
+        [Fact]
+        public async Task TubeStatisticsWork()
+        {
+            await ConnectAsync();
+            var tube = "tube-statistics";
+            await prod.Use(tube);
+            await Task.WhenAll(
+                prod.PutAsync(new byte[] { 51 }, 52, 0, 53),
+                prod.PutAsync(new byte[] { 54 }, 55, 56, 57));
+            var stats = await cons.TubeStatisticsAsync(tube);
+
+            Assert.Equal(tube, stats.Name);
+            Assert.True(1 <= stats.CurrentJobsReady);
+            Assert.True(1 <= stats.CurrentJobsDelayed);
+            Assert.True(1 <= stats.CurrentUsing);
+        }
     }
 }
