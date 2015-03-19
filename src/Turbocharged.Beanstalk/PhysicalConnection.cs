@@ -29,9 +29,9 @@ namespace Turbocharged.Beanstalk
             _client = new TcpClient();
         }
 
-        public void Connect()
+        public async Task ConnectAsync()
         {
-            _client.Connect(_hostname, _port);
+            await _client.ConnectAsync(_hostname, _port);
             _stream = _client.GetStream();
             _receiveTask = ReceiveAsync();
         }
@@ -39,7 +39,16 @@ namespace Turbocharged.Beanstalk
         public void Close()
         {
             using (_stream)
-                _client.Close();
+            {
+                try
+                {
+                    _receiveTask.Dispose();
+                }
+                finally
+                {
+                    _client.Close();
+                }
+            }
         }
 
         public async Task SendAsync<T>(Request<T> request)

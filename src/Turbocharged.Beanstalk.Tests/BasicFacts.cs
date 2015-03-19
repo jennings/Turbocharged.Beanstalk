@@ -20,7 +20,11 @@ namespace Turbocharged.Beanstalk.Tests
             var hostname = ConfigurationManager.AppSettings["Hostname"];
             var port = Convert.ToInt32(ConfigurationManager.AppSettings["Port"]);
             conn = new BeanstalkConnection(hostname, port);
-            conn.Connect();
+        }
+
+        async Task ConnectAsync()
+        {
+            await conn.ConnectAsync();
             cons = conn.GetConsumer();
             prod = conn.GetProducer();
         }
@@ -31,6 +35,7 @@ namespace Turbocharged.Beanstalk.Tests
         [InlineData(255)]
         public async Task CanPutAndPeekAJob(byte data)
         {
+            await ConnectAsync();
             var id = await prod.PutAsync(new byte[] { data }, 1, 0, 10);
             var job = await prod.PeekAsync(id);
             Assert.Equal(id, job.Id);
@@ -40,6 +45,7 @@ namespace Turbocharged.Beanstalk.Tests
         [Fact]
         public async Task CanReserveAJob()
         {
+            await ConnectAsync();
             await prod.PutAsync(new byte[] { 2 }, 1, 0, 10);
             var job = await cons.ReserveAsync();
             Assert.NotNull(job);
@@ -48,6 +54,8 @@ namespace Turbocharged.Beanstalk.Tests
         [Fact]
         public async Task UseWorksCorrectly()
         {
+            await ConnectAsync();
+
             // Put something in a tube
             await prod.Use("default");
             await prod.PutAsync(new byte[] { 3 }, 1, 0, 10);
@@ -65,6 +73,8 @@ namespace Turbocharged.Beanstalk.Tests
         [Fact]
         public async Task WatchAndIgnoreWorksCorrectly()
         {
+            await ConnectAsync();
+
             // Put something in an ignored tube
             await prod.Use("ignored");
             await prod.PutAsync(new byte[] { 11 }, 1, 0, 10);
@@ -86,6 +96,7 @@ namespace Turbocharged.Beanstalk.Tests
         [Fact]
         public async Task PeekingInvalidJobIdReturnsNull()
         {
+            await ConnectAsync();
             var unknownJobId = 2000000; // Hope it's not there
             Assert.Null(await cons.PeekAsync(unknownJobId));
             Assert.Null(await prod.PeekAsync(unknownJobId));
@@ -94,6 +105,7 @@ namespace Turbocharged.Beanstalk.Tests
         [Fact]
         public async Task PeekingEmptyTubeReturnsNull()
         {
+            await ConnectAsync();
             await prod.Use("empty");
             Assert.Null(await prod.PeekAsync());
             Assert.Null(await prod.PeekAsync(JobStatus.Ready));

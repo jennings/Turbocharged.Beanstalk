@@ -20,7 +20,7 @@ namespace SampleApp
             InitializeComponent();
         }
 
-        void connectButton_Click(object sender, EventArgs e)
+        async void connectButton_Click(object sender, EventArgs e)
         {
             connectButton.Enabled = false;
             disconnectButton.Enabled = true;
@@ -29,7 +29,7 @@ namespace SampleApp
             var port = Convert.ToInt32(portTextBox.Text);
 
             connection = new BeanstalkConnection(hostname, port);
-            connection.Connect();
+            await connection.ConnectAsync();
         }
 
         void disconnectButton_Click(object sender, EventArgs e)

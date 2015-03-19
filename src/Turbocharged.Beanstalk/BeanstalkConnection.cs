@@ -17,10 +17,10 @@ namespace Turbocharged.Beanstalk
             _port = port;
         }
 
-        public void Connect()
+        public Task ConnectAsync()
         {
             _connection = new PhysicalConnection(_hostname, _port);
-            _connection.Connect();
+            return _connection.ConnectAsync();
         }
 
         public void Close()
