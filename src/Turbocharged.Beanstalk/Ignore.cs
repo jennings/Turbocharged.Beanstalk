@@ -30,10 +30,13 @@ namespace Turbocharged.Beanstalk
 
         public void Process(string firstLine, NetworkStream stream)
         {
-            var parts = firstLine.Split(' ');
-            if (parts.Length == 0)
-                throw new Exception("Empty ignore response");
+            if (string.IsNullOrWhiteSpace(firstLine))
+            {
+                _tcs.SetException(new Exception("Empty ignore response"));
+                return;
+            }
 
+            var parts = firstLine.Split(' ');
             switch (parts[0])
             {
                 case "WATCHING":

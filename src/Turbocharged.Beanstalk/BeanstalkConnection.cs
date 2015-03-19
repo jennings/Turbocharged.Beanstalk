@@ -64,15 +64,9 @@ namespace Turbocharged.Beanstalk
             return SendAndGetResult(request);
         }
 
-        Task<int> IProducer.PutAsync(byte[] job, int priority, int delay, int ttr)
+        Task<int> IProducer.PutAsync(byte[] job, int priority, int delay, int timeToRun)
         {
-            var request = new PutRequest
-            {
-                Priority = priority,
-                Delay = delay,
-                TimeToRun = ttr,
-                Job = job,
-            };
+            var request = new PutRequest(job, priority, delay, timeToRun);
             return SendAndGetResult(request);
         }
 

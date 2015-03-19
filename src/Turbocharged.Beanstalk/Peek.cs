@@ -17,6 +17,11 @@ namespace Turbocharged.Beanstalk
 
         public PeekRequest(JobStatus status)
         {
+            if (status != JobStatus.Ready
+                && status != JobStatus.Delayed
+                && status != JobStatus.Buried)
+                throw new ArgumentOutOfRangeException("Cannot peek jobs in status " + status.ToString());
+
             Status = status;
             Id = null;
         }

@@ -12,24 +12,28 @@ namespace Turbocharged.Beanstalk
         const int MAX_JOB_SIZE = 1 << 16;
 
         public Task<int> Task { get { return _tcs.Task; } }
-        public int Priority { get; set; }
-        public int Delay { get; set; }
-        public int TimeToRun { get; set; }
-        public byte[] Job { get; set; }
+        public int Priority { get; private set; }
+        public int Delay { get; private set; }
+        public int TimeToRun { get; private set; }
+        public byte[] Job { get; private set; }
 
         TaskCompletionSource<int> _tcs = new TaskCompletionSource<int>();
 
-        public PutRequest()
+        public PutRequest(byte[] job, int priority, int delay, int timeToRun)
         {
-            TimeToRun = 60;
+            if (job == null)
+                throw new ArgumentNullException("job");
+            if (job.Length > MAX_JOB_SIZE)
+                throw new ArgumentOutOfRangeException("job", "Maximum job size is " + MAX_JOB_SIZE + " bytes");
+
+            Job = job;
+            Priority = priority;
+            Delay = delay;
+            TimeToRun = timeToRun;
         }
 
         public byte[] ToByteArray()
         {
-            if (Job == null)
-                throw new InvalidOperationException("Job must be set");
-            if (Job.Length > MAX_JOB_SIZE)
-                throw new InvalidOperationException("Maximum job size is 2^16 bytes");
 
             return "put {0} {1} {2} {3}\r\n".FormatWith(Priority, Delay, TimeToRun, Job.Length)
                 .ToASCIIByteArray()

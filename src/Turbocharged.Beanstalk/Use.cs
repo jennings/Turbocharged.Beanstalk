@@ -17,7 +17,7 @@ namespace Turbocharged.Beanstalk
         public UseRequest(string tube)
         {
             if (tube == null)
-                throw new InvalidOperationException("Tube must not be null");
+                throw new ArgumentNullException("tube");
 
             Tube = tube;
         }
