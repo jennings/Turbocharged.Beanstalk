@@ -55,34 +55,28 @@ namespace Turbocharged.Beanstalk
 
         #region Producer
 
-        async Task<string> IProducer.Use(string tube)
+        Task<string> IProducer.Use(string tube)
         {
-            var tcs = new TaskCompletionSource<string>();
-            var request = new UseRequest(tube, tcs);
-            await _connection.SendAsync(request);
-            return await tcs.Task.ConfigureAwait(false);
+            var request = new UseRequest(tube);
+            return SendAndGetResult(request);
         }
 
-        async Task<string> IProducer.Using()
+        Task<string> IProducer.Using()
         {
-            var tcs = new TaskCompletionSource<string>();
-            var request = new UsingRequest(tcs);
-            await _connection.SendAsync(request);
-            return await tcs.Task.ConfigureAwait(false);
+            var request = new UsingRequest();
+            return SendAndGetResult(request);
         }
 
-        async Task<int> IProducer.PutAsync(byte[] job, int priority, int delay, int ttr)
+        Task<int> IProducer.PutAsync(byte[] job, int priority, int delay, int ttr)
         {
-            var tcs = new TaskCompletionSource<int>();
-            var request = new PutRequest(tcs)
+            var request = new PutRequest
             {
                 Priority = priority,
                 Delay = delay,
                 TimeToRun = ttr,
                 Job = job,
             };
-            await _connection.SendAsync(request);
-            return await tcs.Task.ConfigureAwait(false);
+            return SendAndGetResult(request);
         }
 
         Task<JobDescription> IProducer.PeekAsync()
@@ -90,64 +84,50 @@ namespace Turbocharged.Beanstalk
             return ((IProducer)this).PeekAsync(JobStatus.Ready);
         }
 
-        async Task<JobDescription> IProducer.PeekAsync(JobStatus status)
+        Task<JobDescription> IProducer.PeekAsync(JobStatus status)
         {
-            var tcs = new TaskCompletionSource<JobDescription>();
-            var request = new PeekRequest(status, tcs);
-            await _connection.SendAsync(request).ConfigureAwait(false);
-            return await tcs.Task.ConfigureAwait(false);
+            var request = new PeekRequest(status);
+            return SendAndGetResult(request);
         }
 
-        async Task<JobDescription> IProducer.PeekAsync(int id)
+        Task<JobDescription> IProducer.PeekAsync(int id)
         {
-            var tcs = new TaskCompletionSource<JobDescription>();
-            var request = new PeekRequest(id, tcs);
-            await _connection.SendAsync(request).ConfigureAwait(false);
-            return await tcs.Task.ConfigureAwait(false);
+            var request = new PeekRequest(id);
+            return SendAndGetResult(request);
         }
 
         #endregion
 
         #region Consumer
 
-        async Task<int> IConsumer.Watch(string tube)
+        Task<int> IConsumer.Watch(string tube)
         {
-            var tcs = new TaskCompletionSource<int>();
-            var request = new WatchRequest(tube, tcs);
-            await _connection.SendAsync(request);
-            return await tcs.Task.ConfigureAwait(false);
+            var request = new WatchRequest(tube);
+            return SendAndGetResult(request);
         }
 
-        async Task<int> IConsumer.Ignore(string tube)
+        Task<int> IConsumer.Ignore(string tube)
         {
-            var tcs = new TaskCompletionSource<int>();
-            var request = new IgnoreRequest(tube, tcs);
-            await _connection.SendAsync(request);
-            return await tcs.Task.ConfigureAwait(false);
+            var request = new IgnoreRequest(tube);
+            return SendAndGetResult(request);
         }
 
-        async Task<List<string>> IConsumer.Watched()
+        Task<List<string>> IConsumer.Watched()
         {
-            var tcs = new TaskCompletionSource<List<string>>();
-            var request = new WatchedRequest(tcs);
-            await _connection.SendAsync(request);
-            return await tcs.Task.ConfigureAwait(false);
+            var request = new WatchedRequest();
+            return SendAndGetResult(request);
         }
 
-        async Task<JobDescription> IConsumer.ReserveAsync(TimeSpan timeout)
+        Task<JobDescription> IConsumer.ReserveAsync(TimeSpan timeout)
         {
-            var tcs = new TaskCompletionSource<JobDescription>();
-            var request = new ReserveRequest(timeout, tcs);
-            await _connection.SendAsync(request).ConfigureAwait(false);
-            return await tcs.Task.ConfigureAwait(false);
+            var request = new ReserveRequest(timeout);
+            return SendAndGetResult(request);
         }
 
-        async Task<JobDescription> IConsumer.ReserveAsync()
+        Task<JobDescription> IConsumer.ReserveAsync()
         {
-            var tcs = new TaskCompletionSource<JobDescription>();
-            var request = new ReserveRequest(tcs);
-            await _connection.SendAsync(request).ConfigureAwait(false);
-            return await tcs.Task.ConfigureAwait(false);
+            var request = new ReserveRequest();
+            return SendAndGetResult(request);
         }
 
         Task<JobDescription> IConsumer.PeekAsync(int id)
@@ -156,5 +136,11 @@ namespace Turbocharged.Beanstalk
         }
 
         #endregion
+
+        async Task<T> SendAndGetResult<T>(Request<T> request)
+        {
+            await _connection.SendAsync(request).ConfigureAwait(false);
+            return await request.Task; // Let the consumer decide whether to ConfigureAwait or not
+        }
     }
 }

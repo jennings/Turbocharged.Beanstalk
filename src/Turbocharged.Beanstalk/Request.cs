@@ -12,4 +12,9 @@ namespace Turbocharged.Beanstalk
         byte[] ToByteArray();
         void Process(string firstLine, NetworkStream stream);
     }
+
+    interface Request<T> : Request
+    {
+        Task<T> Task { get; }
+    }
 }

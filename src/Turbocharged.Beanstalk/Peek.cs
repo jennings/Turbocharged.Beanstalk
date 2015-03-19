@@ -7,30 +7,28 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    class PeekRequest : Request
+    class PeekRequest : Request<JobDescription>
     {
-        public int Id { get; set; }
+        public Task<JobDescription> Task { get { return _tcs.Task; } }
+        public int? Id { get; set; }
         public JobStatus Status { get; set; }
 
-        TaskCompletionSource<JobDescription> _tcs;
-        bool useStatus;
+        TaskCompletionSource<JobDescription> _tcs = new TaskCompletionSource<JobDescription>();
 
-        public PeekRequest(JobStatus status, TaskCompletionSource<JobDescription> tcs)
+        public PeekRequest(JobStatus status)
         {
-            useStatus = true;
             Status = status;
-            _tcs = tcs;
+            Id = null;
         }
 
-        public PeekRequest(int id, TaskCompletionSource<JobDescription> tcs)
+        public PeekRequest(int id)
         {
             Id = id;
-            _tcs = tcs;
         }
 
         public byte[] ToByteArray()
         {
-            if (useStatus)
+            if (Id == null)
             {
                 switch (Status)
                 {
@@ -45,7 +43,9 @@ namespace Turbocharged.Beanstalk
                 }
             }
             else
+            {
                 return "peek {0}\r\n".FormatWith(Id).ToASCIIByteArray();
+            }
         }
 
         public void Process(string firstLine, NetworkStream stream)

@@ -66,7 +66,7 @@
     <Compile Include="Using.cs" />
     <Compile Include="Watch.cs" />
     <Compile Include="Use.cs" />
-    <Compile Include="Requests.cs" />
+    <Compile Include="Request.cs" />
     <Compile Include="System\Disposable.cs" />
     <Compile Include="JobDescription.cs" />
     <Compile Include="BeanstalkConnection.cs" />

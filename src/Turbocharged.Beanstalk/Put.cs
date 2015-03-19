@@ -7,21 +7,21 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    class PutRequest : Request
+    class PutRequest : Request<int>
     {
         const int MAX_JOB_SIZE = 1 << 16;
 
+        public Task<int> Task { get { return _tcs.Task; } }
         public int Priority { get; set; }
         public int Delay { get; set; }
         public int TimeToRun { get; set; }
         public byte[] Job { get; set; }
 
-        TaskCompletionSource<int> _tcs;
+        TaskCompletionSource<int> _tcs = new TaskCompletionSource<int>();
 
-        public PutRequest(TaskCompletionSource<int> tcs)
+        public PutRequest()
         {
             TimeToRun = 60;
-            _tcs = tcs;
         }
 
         public byte[] ToByteArray()

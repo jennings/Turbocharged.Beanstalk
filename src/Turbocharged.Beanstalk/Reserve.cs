@@ -7,20 +7,21 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    class ReserveRequest : Request
+    class ReserveRequest : Request<JobDescription>
     {
-        TaskCompletionSource<JobDescription> _tcs;
+        public Task<JobDescription> Task { get { return _tcs.Task; } }
+
+        TaskCompletionSource<JobDescription> _tcs = new TaskCompletionSource<JobDescription>();
         TimeSpan? _timeout;
 
-        public ReserveRequest(TimeSpan timeout, TaskCompletionSource<JobDescription> tcs)
+        public ReserveRequest(TimeSpan timeout)
         {
             _timeout = timeout;
-            _tcs = tcs;
         }
 
-        public ReserveRequest(TaskCompletionSource<JobDescription> tcs)
+        public ReserveRequest()
         {
-            _tcs = tcs;
+            _timeout = null;
         }
 
         public byte[] ToByteArray()

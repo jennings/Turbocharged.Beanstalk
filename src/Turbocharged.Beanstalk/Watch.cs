@@ -7,19 +7,19 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    class WatchRequest : Request
+    class WatchRequest : Request<int>
     {
+        public Task<int> Task { get { return _tcs.Task; } }
         public string Tube { get; set; }
 
-        TaskCompletionSource<int> _tcs;
+        TaskCompletionSource<int> _tcs = new TaskCompletionSource<int>();
 
-        public WatchRequest(string tube, TaskCompletionSource<int> tcs)
+        public WatchRequest(string tube)
         {
             if (tube == null)
                 throw new InvalidOperationException("Tube must not be null");
 
             Tube = tube;
-            _tcs = tcs;
         }
 
         public byte[] ToByteArray()

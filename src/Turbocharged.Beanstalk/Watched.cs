@@ -7,14 +7,11 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    class WatchedRequest : Request
+    class WatchedRequest : Request<List<string>>
     {
-        TaskCompletionSource<List<string>> _tcs;
+        public Task<List<string>> Task { get { return _tcs.Task; } }
 
-        public WatchedRequest(TaskCompletionSource<List<string>> tcs)
-        {
-            _tcs = tcs;
-        }
+        TaskCompletionSource<List<string>> _tcs = new TaskCompletionSource<List<string>>();
 
         public byte[] ToByteArray()
         {

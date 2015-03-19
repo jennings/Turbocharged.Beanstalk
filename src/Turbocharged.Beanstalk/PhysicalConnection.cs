@@ -42,7 +42,7 @@ namespace Turbocharged.Beanstalk
                 _client.Close();
         }
 
-        public async Task SendAsync(Request request)
+        public async Task SendAsync<T>(Request<T> request)
         {
             // TODO: Need a locking mechanism here so requests don't
             //       get inserted into the queue in a different order than
