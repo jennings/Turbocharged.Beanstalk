@@ -54,9 +54,10 @@ namespace Turbocharged.Beanstalk.Tests
 
             // Verify an empty tube is empty
             await prod.Use("empty");
-            await Assert.ThrowsAnyAsync<Exception>(async () => { await prod.PeekAsync(); });
+            Assert.Null(await prod.PeekAsync());
 
             // Verify we see it now
+            await prod.Use("default");
             var job = await prod.PeekAsync();
             Assert.NotNull(job);
         }
@@ -80,6 +81,24 @@ namespace Turbocharged.Beanstalk.Tests
                 cons.Watch("ignored"),
                 cons.Ignore("empty"));
             Assert.NotNull(await cons.ReserveAsync());
+        }
+
+        [Fact]
+        public async Task PeekingInvalidJobIdReturnsNull()
+        {
+            var unknownJobId = 2000000; // Hope it's not there
+            Assert.Null(await cons.PeekAsync(unknownJobId));
+            Assert.Null(await prod.PeekAsync(unknownJobId));
+        }
+
+        [Fact]
+        public async Task PeekingEmptyTubeReturnsNull()
+        {
+            await prod.Use("empty");
+            Assert.Null(await prod.PeekAsync());
+            Assert.Null(await prod.PeekAsync(JobStatus.Ready));
+            Assert.Null(await prod.PeekAsync(JobStatus.Delayed));
+            Assert.Null(await prod.PeekAsync(JobStatus.Buried));
         }
     }
 }
