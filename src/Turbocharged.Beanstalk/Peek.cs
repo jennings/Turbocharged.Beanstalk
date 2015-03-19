@@ -56,7 +56,7 @@ namespace Turbocharged.Beanstalk
                 case "FOUND":
                     var id = Convert.ToInt32(parts[1]);
                     var bytes = Convert.ToInt32(parts[2]);
-                    var descr = ReserveRequest.GetJobDescriptionFromBuffer(id, stream, bytes);
+                    var descr = ReserveRequest.GetJobFromBuffer(id, stream, bytes);
                     _tcs.SetResult(descr);
                     return;
 

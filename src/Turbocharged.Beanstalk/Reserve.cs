@@ -40,20 +40,7 @@ namespace Turbocharged.Beanstalk
                 case "RESERVED":
                     var id = Convert.ToInt32(parts[1]);
                     var bytes = Convert.ToInt32(parts[2]);
-                    var buffer = new byte[bytes];
-                    var readBytes = stream.Read(buffer, 0, bytes);
-                    if (readBytes != bytes)
-                    {
-                        // TODO: Now what, genius?
-                    }
-                    stream.ReadByte(); // CR
-                    stream.ReadByte(); // LF
-
-                    var descr = new Job
-                    {
-                        Id = id,
-                        Data = buffer,
-                    };
+                    var descr = GetJobFromBuffer(id, stream, bytes);
                     _tcs.SetResult(descr);
                     return;
 
@@ -72,7 +59,7 @@ namespace Turbocharged.Beanstalk
             }
         }
 
-        internal static Job GetJobDescriptionFromBuffer(int id, NetworkStream stream, int bytes)
+        internal static Job GetJobFromBuffer(int id, NetworkStream stream, int bytes)
         {
             var buffer = new byte[bytes];
             var readBytes = stream.Read(buffer, 0, bytes);
