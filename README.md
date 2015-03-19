@@ -9,6 +9,13 @@ There are other libraries, but they seem to have been abandoned:
 * [Beanstalk-Sharp][beanstalk-sharp]
 
 
+Goals
+-----
+
+* Simple API
+* Lots of `async` happiness
+
+
 License
 -------
 
