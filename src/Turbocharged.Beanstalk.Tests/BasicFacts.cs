@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Turbocharged.Beanstalk.Tests
 {
-    public class BasicFacts
+    public class BasicFacts : IDisposable
     {
         BeanstalkConnection conn;
         IConsumer cons;
@@ -20,6 +20,11 @@ namespace Turbocharged.Beanstalk.Tests
             var hostname = ConfigurationManager.AppSettings["Hostname"];
             var port = Convert.ToInt32(ConfigurationManager.AppSettings["Port"]);
             conn = new BeanstalkConnection(hostname, port);
+        }
+
+        public void Dispose()
+        {
+            conn.Close();
         }
 
         async Task ConnectAsync()

@@ -17,7 +17,7 @@ namespace Turbocharged.Beanstalk
 
         TcpClient _client;
         NetworkStream _stream;
-        Task _receiveTask;
+        IDisposable _receiveTask;
 
         BlockingCollection<Request> _requestsAwaitingResponse =
             new BlockingCollection<Request>(new ConcurrentQueue<Request>());
@@ -33,21 +33,24 @@ namespace Turbocharged.Beanstalk
         {
             await _client.ConnectAsync(_hostname, _port);
             _stream = _client.GetStream();
-            _receiveTask = ReceiveAsync();
+            var cts = new CancellationTokenSource();
+
+#pragma warning disable 4014
+            ReceiveAsync(cts.Token);
+#pragma warning restore 4014
+
+            _receiveTask = Disposable.Create(() =>
+            {
+                cts.Cancel();
+            });
         }
 
         public void Close()
         {
             using (_stream)
             {
-                try
-                {
-                    _receiveTask.Dispose();
-                }
-                finally
-                {
-                    _client.Close();
-                }
+                _receiveTask.Dispose();
+                _client.Close();
             }
         }
 
@@ -63,44 +66,57 @@ namespace Turbocharged.Beanstalk
             await _stream.WriteAsync(data, 0, data.Length);
         }
 
-        public async Task ReceiveAsync()
+        public async Task ReceiveAsync(CancellationToken token)
         {
-            // So this is kind of dumb. But since I can't use a
-            // StreamReader (can't get raw bytes out of it) or
-            // a BinaryReader (no async methods), I'm reading one
-            // character at a time so I don't read too much
-            // (can't seek a NetworkStream).
-
-            var max = 100;
-            byte[] buffer = new byte[max];
-            int pos = -1;
-            while (true)
+            try
             {
-                pos++;
-                await _stream.ReadAsync(buffer, pos, 1);
-
-                // We're done if the last two characters were CR LF
-                if (pos > 0 && buffer[pos - 1] == 13 && buffer[pos] == 10)
+                var firstLineMaxLength = 255;
+                byte[] buffer = new byte[firstLineMaxLength];
+                int pos = -1; // Our current position in the buffer
+                while (true)
                 {
-                    // We have a line, make it a string and send it to whoever is waiting for it.
-                    var incoming = buffer.ToASCIIString(0, pos - 1);
+                    pos++;
                     try
                     {
-                        var request = _requestsAwaitingResponse.Take();
-                        request.Process(incoming, _stream);
-                        pos = -1;
+                        // So this is kind of dumb. But since I can't use a
+                        // StreamReader (can't get raw bytes out of it)
+                        // or a BinaryReader (no async methods) and I don't
+                        // want to deal with buffering myself, I'm reading
+                        // one character at a time so I don't read past the CRLF
+                        await _stream.ReadAsync(buffer, pos, 1, token);
                     }
-                    catch (Exception ex)
+                    catch (OperationCanceledException)
                     {
+                        return;
+                    }
 
-                        Close();
-                        throw;
+                    // We're done if the last two characters were CR LF
+                    if (pos > 0 && buffer[pos - 1] == 13 && buffer[pos] == 10)
+                    {
+                        // We have a line, make it a string and send it to whoever is waiting for it.
+                        var incoming = buffer.ToASCIIString(0, pos - 1);
+                        var request = _requestsAwaitingResponse.Take();
+                        try
+                        {
+                            request.Process(incoming, _stream);
+                        }
+                        catch (Exception)
+                        {
+                            // How rude
+                        }
+                        pos = -1; // Overwrite the buffer on the next go-round
+                    }
+                    else if (pos == firstLineMaxLength)
+                    {
+                        // Oops
+                        throw new InvalidOperationException("Unable to read message from server");
                     }
                 }
-                else if (pos == max)
-                {
-                    throw new InvalidOperationException("Insufficient buffer for incoming message");
-                }
+            }
+            catch (Exception)
+            {
+                // No way to really recover from this
+                Close();
             }
         }
     }
