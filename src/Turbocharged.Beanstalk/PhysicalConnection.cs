@@ -74,7 +74,7 @@ namespace Turbocharged.Beanstalk
                 if (pos > 0 && buffer[pos - 1] == 13 && buffer[pos] == 10)
                 {
                     // We have a line, make it a string and send it to whoever is waiting for it.
-                    var incoming = Encoding.ASCII.GetString(buffer, 0, pos - 1);
+                    var incoming = buffer.ToASCIIString(0, pos - 1);
                     try
                     {
                         var request = _requestsAwaitingResponse.Take();

@@ -39,7 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Conversions.cs" />
+    <Compile Include="System\EncodingExtensions.cs" />
     <Compile Include="IConsumer.cs" />
     <Compile Include="IProducer.cs" />
     <Compile Include="JobStatus.cs" />
