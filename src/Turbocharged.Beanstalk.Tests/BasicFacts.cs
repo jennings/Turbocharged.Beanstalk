@@ -21,8 +21,8 @@ namespace Turbocharged.Beanstalk.Tests
             var port = Convert.ToInt32(ConfigurationManager.AppSettings["Port"]);
             conn = new BeanstalkConnection(hostname, port);
             conn.Connect();
-            cons = conn.AsConsumer();
-            prod = conn.AsProducer();
+            cons = conn.GetConsumer();
+            prod = conn.GetProducer();
         }
 
         [Theory]

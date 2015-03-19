@@ -43,12 +43,12 @@ namespace Turbocharged.Beanstalk
             Close();
         }
 
-        public IProducer AsProducer()
+        public IProducer GetProducer()
         {
             return this;
         }
 
-        public IConsumer AsConsumer()
+        public IConsumer GetConsumer()
         {
             return this;
         }
