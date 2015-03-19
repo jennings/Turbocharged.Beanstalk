@@ -35,6 +35,11 @@ namespace Turbocharged.Beanstalk
         Task<int> Ignore(string tube);
 
         /// <summary>
+        /// Returns a list of tubes currently being watched.
+        /// </summary>
+        Task<List<string>> Watched();
+
+        /// <summary>
         /// Retrives a job without reserving it.
         /// </summary>
         /// <returns>A job, or null if the job was not found.</returns>

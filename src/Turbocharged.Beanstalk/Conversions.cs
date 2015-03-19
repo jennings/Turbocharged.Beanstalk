@@ -34,5 +34,10 @@ namespace Turbocharged.Beanstalk
         {
             return Encoding.ASCII.GetBytes(str);
         }
+
+        public static string ToASCIIString(this byte[] bytes)
+        {
+            return Encoding.ASCII.GetString(bytes);
+        }
     }
 }

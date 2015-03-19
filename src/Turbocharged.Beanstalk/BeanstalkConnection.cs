@@ -63,6 +63,14 @@ namespace Turbocharged.Beanstalk
             return await tcs.Task.ConfigureAwait(false);
         }
 
+        async Task<string> IProducer.Using()
+        {
+            var tcs = new TaskCompletionSource<string>();
+            var request = new UsingRequest(tcs);
+            await _connection.SendAsync(request);
+            return await tcs.Task.ConfigureAwait(false);
+        }
+
         async Task<int> IProducer.PutAsync(byte[] job, int priority, int delay, int ttr)
         {
             var tcs = new TaskCompletionSource<int>();
@@ -114,6 +122,14 @@ namespace Turbocharged.Beanstalk
         {
             var tcs = new TaskCompletionSource<int>();
             var request = new IgnoreRequest(tube, tcs);
+            await _connection.SendAsync(request);
+            return await tcs.Task.ConfigureAwait(false);
+        }
+
+        async Task<List<string>> IConsumer.Watched()
+        {
+            var tcs = new TaskCompletionSource<List<string>>();
+            var request = new WatchedRequest(tcs);
             await _connection.SendAsync(request);
             return await tcs.Task.ConfigureAwait(false);
         }

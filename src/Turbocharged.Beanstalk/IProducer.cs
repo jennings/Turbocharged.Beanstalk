@@ -15,6 +15,11 @@ namespace Turbocharged.Beanstalk
         Task<string> Use(string tube);
 
         /// <summary>
+        /// Retrieves the name of the currently-used tube.
+        /// </summary>
+        Task<string> Using();
+
+        /// <summary>
         /// Puts a new job into the currently-used tube.
         /// </summary>
         /// <param name="job">The job data.</param>

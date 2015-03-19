@@ -62,6 +62,8 @@
     <Compile Include="Peek.cs" />
     <Compile Include="Reserve.cs" />
     <Compile Include="Ignore.cs" />
+    <Compile Include="Watched.cs" />
+    <Compile Include="Using.cs" />
     <Compile Include="Watch.cs" />
     <Compile Include="Use.cs" />
     <Compile Include="Requests.cs" />
