@@ -117,12 +117,12 @@ namespace Turbocharged.Beanstalk.Tests
         public async Task CanTouchAJob()
         {
             await ConnectAsync();
-            await prod.Use("touch-test");
+            await prod.UseAsync("touch-test");
             await prod.PutAsync(new byte[] { 12 }, 1, ZeroSeconds, TenSeconds);
 
             // Now re-prioritize it
-            await cons.Watch("touch-test");
-            await cons.Ignore("default");
+            await cons.WatchAsync("touch-test");
+            await cons.IgnoreAsync("default");
             var job = await cons.ReserveAsync(TimeSpan.FromSeconds(0));
             var stats1 = await cons.JobStatisticsAsync(job.Id);
             // Uncomment when fixed
@@ -139,15 +139,15 @@ namespace Turbocharged.Beanstalk.Tests
             await ConnectAsync();
 
             // Put something in a tube
-            await prod.Use("default");
+            await prod.UseAsync("default");
             await prod.PutAsync(new byte[] { 3 }, 1, ZeroSeconds, TenSeconds);
 
             // Verify an empty tube is empty
-            await prod.Use("empty");
+            await prod.UseAsync("empty");
             Assert.Null(await prod.PeekAsync());
 
             // Verify we see it now
-            await prod.Use("default");
+            await prod.UseAsync("default");
             var job = await prod.PeekAsync();
             Assert.NotNull(job);
         }
@@ -158,20 +158,20 @@ namespace Turbocharged.Beanstalk.Tests
             await ConnectAsync();
 
             // Put something in an ignored tube
-            await prod.Use("ignored");
+            await prod.UseAsync("ignored");
             await prod.PutAsync(new byte[] { 11 }, 1, ZeroSeconds, TenSeconds);
 
             // Verify we can't see it if we ignore
             await Task.WhenAll(
-                cons.Watch("empty"),
-                cons.Ignore("default"),
-                cons.Ignore("ignored"));
+                cons.WatchAsync("empty"),
+                cons.IgnoreAsync("default"),
+                cons.IgnoreAsync("ignored"));
             await Assert.ThrowsAnyAsync<TimeoutException>(async () => { await cons.ReserveAsync(TimeSpan.Zero); });
 
             // Prove we can see it if we watch the tube again
             await Task.WhenAll(
-                cons.Watch("ignored"),
-                cons.Ignore("empty"));
+                cons.WatchAsync("ignored"),
+                cons.IgnoreAsync("empty"));
             Assert.NotNull(await cons.ReserveAsync());
         }
 
@@ -188,7 +188,7 @@ namespace Turbocharged.Beanstalk.Tests
         public async Task PeekingEmptyTubeReturnsNull()
         {
             await ConnectAsync();
-            await prod.Use("empty");
+            await prod.UseAsync("empty");
             Assert.Null(await prod.PeekAsync());
             Assert.Null(await prod.PeekAsync(JobState.Ready));
             Assert.Null(await prod.PeekAsync(JobState.Delayed));
@@ -212,7 +212,7 @@ namespace Turbocharged.Beanstalk.Tests
         {
             await ConnectAsync();
             var tube = "tube-statistics";
-            await prod.Use(tube);
+            await prod.UseAsync(tube);
             await Task.WhenAll(
                 prod.PutAsync(new byte[] { 51 }, 52, ZeroSeconds, TenSeconds),
                 prod.PutAsync(new byte[] { 54 }, 55, TenSeconds, TenSeconds));

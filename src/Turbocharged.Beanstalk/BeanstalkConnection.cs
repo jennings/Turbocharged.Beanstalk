@@ -55,13 +55,13 @@ namespace Turbocharged.Beanstalk
 
         #region Producer
 
-        Task<string> IProducer.Use(string tube)
+        Task<string> IProducer.UseAsync(string tube)
         {
             var request = new UseRequest(tube);
             return SendAndGetResult(request);
         }
 
-        Task<string> IProducer.Using()
+        Task<string> IProducer.UsingAsync()
         {
             var request = new UsingRequest();
             return SendAndGetResult(request);
@@ -100,19 +100,19 @@ namespace Turbocharged.Beanstalk
 
         #region Consumer
 
-        Task<int> IConsumer.Watch(string tube)
+        Task<int> IConsumer.WatchAsync(string tube)
         {
             var request = new WatchRequest(tube);
             return SendAndGetResult(request);
         }
 
-        Task<int> IConsumer.Ignore(string tube)
+        Task<int> IConsumer.IgnoreAsync(string tube)
         {
             var request = new IgnoreRequest(tube);
             return SendAndGetResult(request);
         }
 
-        Task<List<string>> IConsumer.Watched()
+        Task<List<string>> IConsumer.WatchedAsync()
         {
             var request = new WatchedRequest();
             return SendAndGetResult(request);

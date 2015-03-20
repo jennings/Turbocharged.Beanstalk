@@ -15,12 +15,12 @@ namespace Turbocharged.Beanstalk
         /// Uses the specified tube. Jobs will be inserted into the currently-used tube.
         /// </summary>
         /// <returns></returns>
-        Task<string> Use(string tube);
+        Task<string> UseAsync(string tube);
 
         /// <summary>
         /// Retrieves the name of the currently-used tube.
         /// </summary>
-        Task<string> Using();
+        Task<string> UsingAsync();
 
         /// <summary>
         /// Puts a new job into the currently-used tube.

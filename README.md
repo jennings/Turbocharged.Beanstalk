@@ -17,14 +17,19 @@ Usage
     var connection = new BeanstalkConnection("localhost", 11300);
 
     var producer = connection.GetProducer();
+    await producer.UseAsync("mytube");
     await producer.PutAsync(new [] {}, priority: 5, delay: 0, timeToRun: 60);
 
     var consumer = connection.GetConsumer();
+    await consumer.WatchAsync("mytube");
     var job = await consumer.ReserveAsync();
 
     // ...work work work...
 
-    await consumer.DeleteAsync(job.Id);
+    if (success)
+        await consumer.DeleteAsync(job.Id);
+    else
+        await consumer.BuryAsync(job.Id, priority: 5);
 
 
 Goals

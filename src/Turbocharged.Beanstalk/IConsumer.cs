@@ -59,19 +59,19 @@ namespace Turbocharged.Beanstalk
         /// Begins watching a tube.
         /// </summary>
         /// <returns>The number of tubes currently being watched.</returns>
-        Task<int> Watch(string tube);
+        Task<int> WatchAsync(string tube);
 
         /// <summary>
         /// Ignores jobs from a tube.
         /// </summary>
         /// <returns>The number of tubes currently being watched.</returns>
         /// <exception cref="System.InvalidOperationException">Thrown when attempting to ignore the only watched tube.</exception>
-        Task<int> Ignore(string tube);
+        Task<int> IgnoreAsync(string tube);
 
         /// <summary>
         /// Returns a list of tubes currently being watched.
         /// </summary>
-        Task<List<string>> Watched();
+        Task<List<string>> WatchedAsync();
 
         /// <summary>
         /// Retrives a job without reserving it.
