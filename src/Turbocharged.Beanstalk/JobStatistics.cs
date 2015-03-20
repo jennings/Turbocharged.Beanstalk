@@ -12,7 +12,7 @@ namespace Turbocharged.Beanstalk
     {
         public int Id { get; internal set; }
         public string Tube { get; internal set; }
-        public JobStatus State { get; internal set; }
+        public JobState State { get; internal set; }
         public int Priority { get; internal set; }
         public TimeSpan Age { get; internal set; }
         public TimeSpan TimeLeft { get; internal set; }
@@ -77,7 +77,7 @@ namespace Turbocharged.Beanstalk
                                 case "ttr": result.TimeToRun = TimeSpan.FromSeconds(Convert.ToInt32(pair.Value)); break;
                                 case "time-left": result.TimeLeft = TimeSpan.FromSeconds(Convert.ToInt32(pair.Value)); break;
 
-                                case "state": result.State = (JobStatus)Enum.Parse(typeof(JobStatus), pair.Value, true); break;
+                                case "state": result.State = (JobState)Enum.Parse(typeof(JobState), pair.Value, true); break;
                             }
                         }
                         _tcs.SetResult(result);

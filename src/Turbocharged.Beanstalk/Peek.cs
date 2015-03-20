@@ -10,46 +10,46 @@ namespace Turbocharged.Beanstalk
     class PeekRequest : Request<Job>
     {
         public Task<Job> Task { get { return _tcs.Task; } }
-        public int? Id { get; set; }
-        public JobStatus Status { get; set; }
+        int? _id;
+        JobState _state { get; set; }
 
         TaskCompletionSource<Job> _tcs = new TaskCompletionSource<Job>();
 
-        public PeekRequest(JobStatus status)
+        public PeekRequest(JobState state)
         {
-            if (status != JobStatus.Ready
-                && status != JobStatus.Delayed
-                && status != JobStatus.Buried)
-                throw new ArgumentOutOfRangeException("Cannot peek jobs in status " + status.ToString());
+            if (state != JobState.Ready
+                && state != JobState.Delayed
+                && state != JobState.Buried)
+                throw new ArgumentOutOfRangeException("Cannot peek jobs in state " + state.ToString());
 
-            Status = status;
-            Id = null;
+            _state = state;
+            _id = null;
         }
 
         public PeekRequest(int id)
         {
-            Id = id;
+            _id = id;
         }
 
         public byte[] ToByteArray()
         {
-            if (Id == null)
+            if (_id == null)
             {
-                switch (Status)
+                switch (_state)
                 {
-                    case JobStatus.Ready:
+                    case JobState.Ready:
                         return "peek-ready\r\n".ToASCIIByteArray();
-                    case JobStatus.Delayed:
+                    case JobState.Delayed:
                         return "peek-delayed\r\n".ToASCIIByteArray();
-                    case JobStatus.Buried:
+                    case JobState.Buried:
                         return "peek-buried\r\n".ToASCIIByteArray();
                     default:
-                        throw new NotSupportedException("Cannot peek jobs in status " + Status.ToString());
+                        throw new NotSupportedException("Cannot peek jobs in state " + _state.ToString());
                 }
             }
             else
             {
-                return "peek {0}\r\n".FormatWith(Id).ToASCIIByteArray();
+                return "peek {0}\r\n".FormatWith(_id).ToASCIIByteArray();
             }
         }
 

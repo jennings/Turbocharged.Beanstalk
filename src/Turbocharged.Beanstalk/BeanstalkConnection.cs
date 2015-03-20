@@ -72,12 +72,12 @@ namespace Turbocharged.Beanstalk
 
         Task<Job> IProducer.PeekAsync()
         {
-            return ((IProducer)this).PeekAsync(JobStatus.Ready);
+            return ((IProducer)this).PeekAsync(JobState.Ready);
         }
 
-        Task<Job> IProducer.PeekAsync(JobStatus status)
+        Task<Job> IProducer.PeekAsync(JobState state)
         {
-            var request = new PeekRequest(status);
+            var request = new PeekRequest(state);
             return SendAndGetResult(request);
         }
 

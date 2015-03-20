@@ -49,7 +49,7 @@
     <Compile Include="System\EncodingExtensions.cs" />
     <Compile Include="IConsumer.cs" />
     <Compile Include="IProducer.cs" />
-    <Compile Include="JobStatus.cs" />
+    <Compile Include="JobState.cs" />
     <Compile Include="PhysicalConnection.cs" />
     <Compile Include="Peek.cs" />
     <Compile Include="Reserve.cs" />

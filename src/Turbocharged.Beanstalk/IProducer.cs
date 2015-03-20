@@ -45,7 +45,7 @@ namespace Turbocharged.Beanstalk
         /// Retrives the first job from the specified state in the currently-used tube.
         /// </summary>
         /// <returns>A job, or null if no jobs are in the specified state.</returns>
-        Task<Job> PeekAsync(JobStatus status);
+        Task<Job> PeekAsync(JobState state);
 
         /// <summary>
         /// Retrieves statistics about the specified tube.

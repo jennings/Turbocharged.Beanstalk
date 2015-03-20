@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    public enum JobStatus
+    public enum JobState
     {
         Ready,
         Buried,

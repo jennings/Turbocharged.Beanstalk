@@ -107,7 +107,7 @@ namespace Turbocharged.Beanstalk.Tests
             var stats2 = await cons.JobStatisticsAsync(job.Id);
             var stats = await cons.JobStatisticsAsync(job.Id);
             Assert.Equal(stats1.Buries + 1, stats2.Buries);
-            Assert.Equal(JobStatus.Buried, stats2.State);
+            Assert.Equal(JobState.Buried, stats2.State);
         }
 
         [Fact]
@@ -187,9 +187,9 @@ namespace Turbocharged.Beanstalk.Tests
             await ConnectAsync();
             await prod.Use("empty");
             Assert.Null(await prod.PeekAsync());
-            Assert.Null(await prod.PeekAsync(JobStatus.Ready));
-            Assert.Null(await prod.PeekAsync(JobStatus.Delayed));
-            Assert.Null(await prod.PeekAsync(JobStatus.Buried));
+            Assert.Null(await prod.PeekAsync(JobState.Ready));
+            Assert.Null(await prod.PeekAsync(JobState.Delayed));
+            Assert.Null(await prod.PeekAsync(JobState.Buried));
         }
 
         [Fact]
@@ -201,7 +201,7 @@ namespace Turbocharged.Beanstalk.Tests
             Assert.Equal(id, stats.Id);
             Assert.Equal(42, stats.Priority);
             Assert.Equal(43, (int)stats.TimeToRun.TotalSeconds);
-            Assert.Equal(JobStatus.Ready, stats.State);
+            Assert.Equal(JobState.Ready, stats.State);
         }
 
         [Fact]
