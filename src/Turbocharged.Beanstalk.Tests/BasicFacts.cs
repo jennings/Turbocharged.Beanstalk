@@ -15,6 +15,9 @@ namespace Turbocharged.Beanstalk.Tests
         IConsumer cons;
         IProducer prod;
 
+        static TimeSpan ZeroSeconds = TimeSpan.Zero;
+        static TimeSpan TenSeconds = TimeSpan.FromSeconds(10);
+
         public BasicFacts()
         {
             var hostname = ConfigurationManager.AppSettings["Hostname"];
@@ -41,7 +44,7 @@ namespace Turbocharged.Beanstalk.Tests
         public async Task CanPutAndPeekAJob(byte data)
         {
             await ConnectAsync();
-            var id = await prod.PutAsync(new byte[] { data }, 1, 0, 10);
+            var id = await prod.PutAsync(new byte[] { data }, 1, ZeroSeconds, TenSeconds);
             var job = await prod.PeekAsync(id);
             Assert.Equal(id, job.Id);
             Assert.Equal(data, job.Data[0]);
@@ -51,7 +54,7 @@ namespace Turbocharged.Beanstalk.Tests
         public async Task CanReserveAJob()
         {
             await ConnectAsync();
-            await prod.PutAsync(new byte[] { 2 }, 1, 0, 10);
+            await prod.PutAsync(new byte[] { 2 }, 1, ZeroSeconds, TenSeconds);
             var job = await cons.ReserveAsync();
             Assert.NotNull(job);
         }
@@ -60,7 +63,7 @@ namespace Turbocharged.Beanstalk.Tests
         public async Task CanDeleteAJob()
         {
             await ConnectAsync();
-            var id = await prod.PutAsync(new byte[] { 4 }, 1, 0, 10);
+            var id = await prod.PutAsync(new byte[] { 4 }, 1, ZeroSeconds, TenSeconds);
             var deleted = await cons.DeleteAsync(id);
             Assert.True(deleted);
         }
@@ -82,7 +85,7 @@ namespace Turbocharged.Beanstalk.Tests
         public async Task CanReleaseAJob()
         {
             await ConnectAsync();
-            await prod.PutAsync(new byte[] { 10 }, 1, 0, 10);
+            await prod.PutAsync(new byte[] { 10 }, 1, ZeroSeconds, TenSeconds);
 
             // Now re-prioritize it
             var job = await cons.ReserveAsync(TimeSpan.FromSeconds(0));
@@ -97,7 +100,7 @@ namespace Turbocharged.Beanstalk.Tests
         public async Task CanBuryAJob()
         {
             await ConnectAsync();
-            await prod.PutAsync(new byte[] { 11 }, 1, 0, 10);
+            await prod.PutAsync(new byte[] { 11 }, 1, ZeroSeconds, TenSeconds);
 
             // Now re-prioritize it
             var job = await cons.ReserveAsync(TimeSpan.FromSeconds(0));
@@ -115,7 +118,7 @@ namespace Turbocharged.Beanstalk.Tests
         {
             await ConnectAsync();
             await prod.Use("touch-test");
-            await prod.PutAsync(new byte[] { 12 }, 1, 0, 10);
+            await prod.PutAsync(new byte[] { 12 }, 1, ZeroSeconds, TenSeconds);
 
             // Now re-prioritize it
             await cons.Watch("touch-test");
@@ -137,7 +140,7 @@ namespace Turbocharged.Beanstalk.Tests
 
             // Put something in a tube
             await prod.Use("default");
-            await prod.PutAsync(new byte[] { 3 }, 1, 0, 10);
+            await prod.PutAsync(new byte[] { 3 }, 1, ZeroSeconds, TenSeconds);
 
             // Verify an empty tube is empty
             await prod.Use("empty");
@@ -156,7 +159,7 @@ namespace Turbocharged.Beanstalk.Tests
 
             // Put something in an ignored tube
             await prod.Use("ignored");
-            await prod.PutAsync(new byte[] { 11 }, 1, 0, 10);
+            await prod.PutAsync(new byte[] { 11 }, 1, ZeroSeconds, TenSeconds);
 
             // Verify we can't see it if we ignore
             await Task.WhenAll(
@@ -196,7 +199,7 @@ namespace Turbocharged.Beanstalk.Tests
         public async Task JobStatisticsWork()
         {
             await ConnectAsync();
-            var id = await prod.PutAsync(new byte[] { 41 }, 42, 0, 43);
+            var id = await prod.PutAsync(new byte[] { 41 }, 42, ZeroSeconds, TimeSpan.FromSeconds(43));
             var stats = await cons.JobStatisticsAsync(id);
             Assert.Equal(id, stats.Id);
             Assert.Equal(42, stats.Priority);
@@ -211,8 +214,8 @@ namespace Turbocharged.Beanstalk.Tests
             var tube = "tube-statistics";
             await prod.Use(tube);
             await Task.WhenAll(
-                prod.PutAsync(new byte[] { 51 }, 52, 0, 53),
-                prod.PutAsync(new byte[] { 54 }, 55, 56, 57));
+                prod.PutAsync(new byte[] { 51 }, 52, ZeroSeconds, TenSeconds),
+                prod.PutAsync(new byte[] { 54 }, 55, TenSeconds, TenSeconds));
             var stats = await cons.TubeStatisticsAsync(tube);
 
             Assert.Equal(tube, stats.Name);

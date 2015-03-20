@@ -12,32 +12,33 @@ namespace Turbocharged.Beanstalk
         const int MAX_JOB_SIZE = 1 << 16;
 
         public Task<int> Task { get { return _tcs.Task; } }
-        public int Priority { get; private set; }
-        public int Delay { get; private set; }
-        public int TimeToRun { get; private set; }
-        public byte[] Job { get; private set; }
+        int _priority;
+        TimeSpan _delay;
+        TimeSpan _timeToRun;
+        byte[] _job;
 
         TaskCompletionSource<int> _tcs = new TaskCompletionSource<int>();
 
-        public PutRequest(byte[] job, int priority, int delay, int timeToRun)
+        public PutRequest(byte[] job, int priority, TimeSpan delay, TimeSpan timeToRun)
         {
             if (job == null)
                 throw new ArgumentNullException("job");
             if (job.Length > MAX_JOB_SIZE)
                 throw new ArgumentOutOfRangeException("job", "Maximum job size is " + MAX_JOB_SIZE + " bytes");
 
-            Job = job;
-            Priority = priority;
-            Delay = delay;
-            TimeToRun = timeToRun;
+            _job = job;
+            _priority = priority;
+            _delay = delay;
+            _timeToRun = timeToRun;
         }
 
         public byte[] ToByteArray()
         {
-
-            return "put {0} {1} {2} {3}\r\n".FormatWith(Priority, Delay, TimeToRun, Job.Length)
+            var ttr = (int)_timeToRun.TotalSeconds;
+            var delay = (int)_delay.TotalSeconds;
+            return "put {0} {1} {2} {3}\r\n".FormatWith(_priority, delay, ttr, _job.Length)
                 .ToASCIIByteArray()
-                .Concat(Job)
+                .Concat(_job)
                 .Concat(new byte[] { 13, 10 })
                 .ToArray();
         }

@@ -27,10 +27,10 @@ namespace Turbocharged.Beanstalk
         /// </summary>
         /// <param name="job">The job data.</param>
         /// <param name="priority">The priority of the job. Higher-priority jobs will be delivered before lower-priority jobs.</param>
-        /// <param name="delay">The number of seconds the server should wait before allowing the job to be reserved.</param>
-        /// <param name="timeToRun">The number of seconds for which this job will be reserved.</param>
+        /// <param name="delay">The duration server should wait before allowing the job to be reserved.</param>
+        /// <param name="timeToRun">The duration for which this job will be reserved.</param>
         /// <returns>The ID of the inserted job.</returns>
-        Task<int> PutAsync(byte[] job, int priority, int delay, int timeToRun);
+        Task<int> PutAsync(byte[] job, int priority, TimeSpan delay, TimeSpan timeToRun);
 
         /// <summary>
         /// Retrives a job without reserving it.
