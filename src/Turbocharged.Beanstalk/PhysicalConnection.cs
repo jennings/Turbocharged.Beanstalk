@@ -42,6 +42,7 @@ namespace Turbocharged.Beanstalk
             _receiveTask = Disposable.Create(() =>
             {
                 cts.Cancel();
+                cts.Dispose();
             });
         }
 
