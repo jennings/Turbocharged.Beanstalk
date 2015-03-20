@@ -57,6 +57,26 @@ namespace Turbocharged.Beanstalk.Tests
         }
 
         [Fact]
+        public async Task CanDeleteAJob()
+        {
+            await ConnectAsync();
+            var id = await prod.PutAsync(new byte[] { 4 }, 1, 0, 10);
+            await cons.DeleteAsync(id);
+        }
+
+        [Fact]
+        public async Task DeletingANonexistentJobThrows()
+        {
+            await ConnectAsync();
+            var id = 65000;
+            if (await cons.PeekAsync(id) != null)
+            {
+                await cons.DeleteAsync(id);
+            }
+            await Assert.ThrowsAsync<KeyNotFoundException>(async () => await cons.DeleteAsync(id));
+        }
+
+        [Fact]
         public async Task UseWorksCorrectly()
         {
             await ConnectAsync();

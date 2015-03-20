@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Delete.cs" />
     <Compile Include="TubeStatistics.cs" />
     <Compile Include="JobStatistics.cs" />
     <Compile Include="System\EncodingExtensions.cs" />

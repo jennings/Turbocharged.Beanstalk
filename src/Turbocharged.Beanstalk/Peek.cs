@@ -66,6 +66,7 @@ namespace Turbocharged.Beanstalk
                     return;
 
                 case "NOT_FOUND":
+                    // If we searched by ID, should we instead throw KeyNotFoundException?
                     _tcs.SetResult(null);
                     return;
 

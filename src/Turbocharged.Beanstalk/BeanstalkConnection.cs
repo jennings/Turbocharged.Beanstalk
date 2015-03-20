@@ -132,6 +132,12 @@ namespace Turbocharged.Beanstalk
             return ((IProducer)this).PeekAsync(id);
         }
 
+        Task IConsumer.DeleteAsync(int id)
+        {
+            var request = new DeleteRequest(id);
+            return SendAndGetResult(request);
+        }
+
         Task<JobStatistics> IConsumer.JobStatisticsAsync(int id)
         {
             var request = new JobStatisticsRequest(id);

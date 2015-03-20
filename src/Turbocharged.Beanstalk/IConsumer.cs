@@ -22,6 +22,12 @@ namespace Turbocharged.Beanstalk
         Task<Job> ReserveAsync(TimeSpan timeout);
 
         /// <summary>
+        /// Deletes the specified job.
+        /// </summary>
+        /// <exception cref="System.InvalidOperationException">Thrown when the job ID is not found.</exception>
+        Task DeleteAsync(int id);
+
+        /// <summary>
         /// Returns statistics about a specified job.
         /// </summary>
         Task<JobStatistics> JobStatisticsAsync(int id);
