@@ -40,6 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Touch.cs" />
+    <Compile Include="Bury.cs" />
+    <Compile Include="Release.cs" />
     <Compile Include="Delete.cs" />
     <Compile Include="TubeStatistics.cs" />
     <Compile Include="JobStatistics.cs" />

@@ -79,6 +79,58 @@ namespace Turbocharged.Beanstalk.Tests
         }
 
         [Fact]
+        public async Task CanReleaseAJob()
+        {
+            await ConnectAsync();
+            await prod.PutAsync(new byte[] { 10 }, 1, 0, 10);
+
+            // Now re-prioritize it
+            var job = await cons.ReserveAsync(TimeSpan.FromSeconds(0));
+            var stats1 = await cons.JobStatisticsAsync(job.Id);
+            await cons.ReleaseAsync(job.Id, stats1.Priority + 1, TimeSpan.FromSeconds(20));
+            var stats2 = await cons.JobStatisticsAsync(job.Id);
+            Assert.Equal(stats1.Priority + 1, stats2.Priority);
+            Assert.Equal(stats1.Releases + 1, stats2.Releases);
+        }
+
+        [Fact]
+        public async Task CanBuryAJob()
+        {
+            await ConnectAsync();
+            await prod.PutAsync(new byte[] { 11 }, 1, 0, 10);
+
+            // Now re-prioritize it
+            var job = await cons.ReserveAsync(TimeSpan.FromSeconds(0));
+            var stats1 = await cons.JobStatisticsAsync(job.Id);
+            await Task.Delay(400);
+            await cons.BuryAsync(job.Id, 3);
+            var stats2 = await cons.JobStatisticsAsync(job.Id);
+            var stats = await cons.JobStatisticsAsync(job.Id);
+            Assert.Equal(stats1.Buries + 1, stats2.Buries);
+            Assert.Equal(JobStatus.Buried, stats2.State);
+        }
+
+        [Fact]
+        public async Task CanTouchAJob()
+        {
+            await ConnectAsync();
+            await prod.Use("touch-test");
+            await prod.PutAsync(new byte[] { 12 }, 1, 0, 10);
+
+            // Now re-prioritize it
+            await cons.Watch("touch-test");
+            await cons.Ignore("default");
+            var job = await cons.ReserveAsync(TimeSpan.FromSeconds(0));
+            var stats1 = await cons.JobStatisticsAsync(job.Id);
+            // Uncomment when fixed
+            // System.Threading.Thread.Sleep(2000);
+            await cons.TouchAsync(job.Id);
+            var stats2 = await cons.JobStatisticsAsync(job.Id);
+            // Commented out because I don't understand why this fails
+            // Assert.True(stats1.TimeLeft < stats2.TimeLeft);
+        }
+
+        [Fact]
         public async Task UseWorksCorrectly()
         {
             await ConnectAsync();

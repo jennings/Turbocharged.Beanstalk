@@ -28,6 +28,21 @@ namespace Turbocharged.Beanstalk
         Task<bool> DeleteAsync(int id);
 
         /// <summary>
+        /// Releases the specified job so another consumer may reserve it.
+        /// </summary>
+        Task<bool> ReleaseAsync(int id, int priority, TimeSpan delay);
+
+        /// <summary>
+        /// Buries the specified job so no other consumers can reserve it.
+        /// </summary>
+        Task<bool> BuryAsync(int id, int priority);
+
+        /// <summary>
+        /// Deletes the specified job.
+        /// </summary>
+        Task<bool> TouchAsync(int id);
+
+        /// <summary>
         /// Returns statistics about a specified job.
         /// </summary>
         Task<JobStatistics> JobStatisticsAsync(int id);

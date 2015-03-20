@@ -138,6 +138,24 @@ namespace Turbocharged.Beanstalk
             return SendAndGetResult(request);
         }
 
+        Task<bool> IConsumer.ReleaseAsync(int id, int priority, TimeSpan delay)
+        {
+            var request = new ReleaseRequest(id, priority, (int)delay.TotalSeconds);
+            return SendAndGetResult(request);
+        }
+
+        Task<bool> IConsumer.BuryAsync(int id, int priority)
+        {
+            var request = new BuryRequest(id, priority);
+            return SendAndGetResult(request);
+        }
+
+        Task<bool> IConsumer.TouchAsync(int id)
+        {
+            var request = new TouchRequest(id);
+            return SendAndGetResult(request);
+        }
+
         Task<JobStatistics> IConsumer.JobStatisticsAsync(int id)
         {
             var request = new JobStatisticsRequest(id);
