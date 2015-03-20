@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
+    /// <summary>
+    /// Provides methods useful for reserving and inspecting jobs.
+    /// </summary>
     public interface IConsumer
     {
         /// <summary>

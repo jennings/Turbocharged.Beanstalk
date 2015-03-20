@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
+    /// <summary>
+    /// Provides methods useful for inserting jobs into Beanstalk.
+    /// </summary>
     public interface IProducer
     {
         /// <summary>

@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
+    /// <summary>
+    /// A connection to a Beanstalk server.
+    /// </summary>
     public sealed class BeanstalkConnection : IProducer, IConsumer, IDisposable
     {
         string _hostname;
