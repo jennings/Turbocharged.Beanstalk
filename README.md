@@ -1,6 +1,8 @@
 Turbocharged.Beanstalk
 ======================
 
+[![Build status](https://ci.appveyor.com/api/projects/status/9ydx1vwh8hjxhv4w?svg=true)](https://ci.appveyor.com/project/jennings/turbocharged-beanstalk)
+
 A .NET library for using [Beanstalk][beanstalk].
 
 There are other libraries, but they seem to have been abandoned:

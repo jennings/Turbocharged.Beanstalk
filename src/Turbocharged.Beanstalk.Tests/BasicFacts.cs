@@ -20,8 +20,8 @@ namespace Turbocharged.Beanstalk.Tests
 
         public BasicFacts()
         {
-            var hostname = ConfigurationManager.AppSettings["Hostname"];
-            var port = Convert.ToInt32(ConfigurationManager.AppSettings["Port"]);
+            var hostname = Environment.GetEnvironmentVariable("BEANSTALK_HOSTNAME") ?? ConfigurationManager.AppSettings["Hostname"];
+            var port = Convert.ToInt32(Environment.GetEnvironmentVariable("BEANSTALK_PORT") ?? ConfigurationManager.AppSettings["Port"]);
             conn = new BeanstalkConnection(hostname, port);
         }
 
