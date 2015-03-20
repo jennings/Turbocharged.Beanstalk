@@ -25,7 +25,7 @@ namespace Turbocharged.Beanstalk
         /// Deletes the specified job.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">Thrown when the job ID is not found.</exception>
-        Task DeleteAsync(int id);
+        Task<bool> DeleteAsync(int id);
 
         /// <summary>
         /// Returns statistics about a specified job.

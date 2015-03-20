@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    class DeleteRequest : Request<int>
+    class DeleteRequest : Request<bool>
     {
-        public Task<int> Task { get { return _tcs.Task; } }
+        public Task<bool> Task { get { return _tcs.Task; } }
 
-        TaskCompletionSource<int> _tcs = new TaskCompletionSource<int>();
+        TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>();
         int _id;
 
         public DeleteRequest(int id)
@@ -29,11 +29,15 @@ namespace Turbocharged.Beanstalk
             switch (firstLine)
             {
                 case "DELETED":
-                    _tcs.SetResult(0);
+                    _tcs.SetResult(true);
                     return;
 
                 case "NOT_FOUND":
-                    _tcs.SetException(new KeyNotFoundException("Job ID not found"));
+                    // This isn't an exception because another consumer
+                    // might have peeked and deleted the job while
+                    // we were working on it. We don't want every consumer
+                    // to always have to wrap the delete statement.
+                    _tcs.SetResult(false);
                     return;
 
                 default:

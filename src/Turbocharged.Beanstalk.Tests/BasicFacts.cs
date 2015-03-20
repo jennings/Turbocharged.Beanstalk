@@ -61,11 +61,12 @@ namespace Turbocharged.Beanstalk.Tests
         {
             await ConnectAsync();
             var id = await prod.PutAsync(new byte[] { 4 }, 1, 0, 10);
-            await cons.DeleteAsync(id);
+            var deleted = await cons.DeleteAsync(id);
+            Assert.True(deleted);
         }
 
         [Fact]
-        public async Task DeletingANonexistentJobThrows()
+        public async Task DeletingANonexistentReturnsFalse()
         {
             await ConnectAsync();
             var id = 65000;
@@ -73,7 +74,8 @@ namespace Turbocharged.Beanstalk.Tests
             {
                 await cons.DeleteAsync(id);
             }
-            await Assert.ThrowsAsync<KeyNotFoundException>(async () => await cons.DeleteAsync(id));
+            var deleted = await cons.DeleteAsync(id);
+            Assert.False(deleted);
         }
 
         [Fact]

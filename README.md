@@ -9,13 +9,6 @@ There are other libraries, but they seem to have been abandoned:
 * [Beanstalk-Sharp][beanstalk-sharp]
 
 
-Goals
------
-
-* Simple API
-* Lots of `async` happiness
-
-
 Usage
 -----
 
@@ -30,6 +23,13 @@ Usage
     // ...work work work...
 
     await consumer.DeleteAsync(job.Id);
+
+
+Goals
+-----
+
+* Simple API
+* Lots of `async` happiness
 
 
 License
