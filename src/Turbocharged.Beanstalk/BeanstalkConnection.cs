@@ -17,15 +17,17 @@ namespace Turbocharged.Beanstalk
         int _port;
         PhysicalConnection _connection;
 
+        #region Connection
+
         // Private, so we can make the object creation async
-        private BeanstalkConnection(string hostname, int port)
+        BeanstalkConnection(string hostname, int port)
         {
             _hostname = hostname;
             _port = port;
             _connection = new PhysicalConnection(hostname, port);
         }
 
-        private static async Task<BeanstalkConnection> ConnectAsync(string hostname, int port)
+        static async Task<BeanstalkConnection> ConnectAsync(string hostname, int port)
         {
             var connection = new BeanstalkConnection(hostname, port);
             await connection._connection.ConnectAsync(); // Yo dawg
@@ -96,6 +98,8 @@ namespace Turbocharged.Beanstalk
         {
             Close();
         }
+
+        #endregion
 
         #region Producer
 
