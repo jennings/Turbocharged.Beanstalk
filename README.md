@@ -14,7 +14,7 @@ There are other libraries, but they seem to have been abandoned:
 Usage
 -----
 
-    var connection = new BeanstalkConnection("localhost", 11300);
+    var connection = await BeanstalkConnection.ConnectAsync("localhost", 11300);
 
     var producer = connection.GetProducer();
     await producer.UseAsync("mytube");

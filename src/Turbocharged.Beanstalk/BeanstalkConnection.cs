@@ -14,27 +14,42 @@ namespace Turbocharged.Beanstalk
         int _port;
         PhysicalConnection _connection;
 
-        public BeanstalkConnection(string hostname, int port)
+        // Private, so we can make the object creation async
+        private BeanstalkConnection(string hostname, int port)
         {
             _hostname = hostname;
             _port = port;
         }
 
-        public Task ConnectAsync()
+        private Task ConnectAsync()
         {
             _connection = new PhysicalConnection(_hostname, _port);
             return _connection.ConnectAsync();
         }
 
+        /// <summary>
+        /// Creates a new connection to a Beanstalk server.
+        /// </summary>
+        public static async Task<BeanstalkConnection> ConnectAsync(string hostname, int port)
+        {
+            var connection = new BeanstalkConnection(hostname, port);
+            await connection.ConnectAsync();
+            return connection;
+        }
+
         public void Close()
         {
-            try
+            var c = _connection;
+            _connection = null;
+            if (c != null)
             {
-                _connection.Close();
-            }
-            finally
-            {
-                _connection = null;
+                try
+                {
+                    c.Close();
+                }
+                catch
+                {
+                }
             }
         }
 

@@ -28,8 +28,7 @@ namespace SampleApp
             var hostname = hostnameTextBox.Text;
             var port = Convert.ToInt32(portTextBox.Text);
 
-            connection = new BeanstalkConnection(hostname, port);
-            await connection.ConnectAsync();
+            connection = await BeanstalkConnection.ConnectAsync(hostname, port);
         }
 
         void disconnectButton_Click(object sender, EventArgs e)

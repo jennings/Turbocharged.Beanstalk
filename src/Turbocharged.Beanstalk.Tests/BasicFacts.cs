@@ -14,15 +14,16 @@ namespace Turbocharged.Beanstalk.Tests
         BeanstalkConnection conn;
         IConsumer cons;
         IProducer prod;
+        string hostname;
+        int port;
 
         static TimeSpan ZeroSeconds = TimeSpan.Zero;
         static TimeSpan TenSeconds = TimeSpan.FromSeconds(10);
 
         public BasicFacts()
         {
-            var hostname = Environment.GetEnvironmentVariable("BEANSTALK_HOSTNAME") ?? ConfigurationManager.AppSettings["Hostname"];
-            var port = Convert.ToInt32(Environment.GetEnvironmentVariable("BEANSTALK_PORT") ?? ConfigurationManager.AppSettings["Port"]);
-            conn = new BeanstalkConnection(hostname, port);
+            hostname = Environment.GetEnvironmentVariable("BEANSTALK_HOSTNAME") ?? ConfigurationManager.AppSettings["Hostname"];
+            port = Convert.ToInt32(Environment.GetEnvironmentVariable("BEANSTALK_PORT") ?? ConfigurationManager.AppSettings["Port"]);
         }
 
         public void Dispose()
@@ -32,7 +33,7 @@ namespace Turbocharged.Beanstalk.Tests
 
         async Task ConnectAsync()
         {
-            await conn.ConnectAsync();
+            conn = await BeanstalkConnection.ConnectAsync(hostname, port);
             cons = conn.GetConsumer();
             prod = conn.GetProducer();
         }
