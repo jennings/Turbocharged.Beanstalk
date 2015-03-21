@@ -20,22 +20,30 @@ namespace Turbocharged.Beanstalk
         {
             _hostname = hostname;
             _port = port;
+            _connection = new PhysicalConnection(hostname, port);
         }
 
-        private Task ConnectAsync()
+        private static async Task<BeanstalkConnection> ConnectAsync(string hostname, int port)
         {
-            _connection = new PhysicalConnection(_hostname, _port);
-            return _connection.ConnectAsync();
+            var connection = new BeanstalkConnection(hostname, port);
+            await connection._connection.ConnectAsync(); // Yo dawg
+            return connection;
         }
 
         /// <summary>
-        /// Creates a new connection to a Beanstalk server.
+        /// Creates a consumer with a dedicated TCP connection to a Beanstalk server.
         /// </summary>
-        public static async Task<BeanstalkConnection> ConnectAsync(string hostname, int port)
+        public static async Task<IConsumer> ConnectConsumerAsync(string hostname, int port)
         {
-            var connection = new BeanstalkConnection(hostname, port);
-            await connection.ConnectAsync();
-            return connection;
+            return await ConnectAsync(hostname, port);
+        }
+
+        /// <summary>
+        /// Creates a producer with a dedicated TCP connection to a Beanstalk server.
+        /// </summary>
+        public static async Task<IProducer> ConnectProducerAsync(string hostname, int port)
+        {
+            return await ConnectAsync(hostname, port);
         }
 
         public void Close()
@@ -57,16 +65,6 @@ namespace Turbocharged.Beanstalk
         void IDisposable.Dispose()
         {
             Close();
-        }
-
-        public IProducer GetProducer()
-        {
-            return this;
-        }
-
-        public IConsumer GetConsumer()
-        {
-            return this;
         }
 
         #region Producer

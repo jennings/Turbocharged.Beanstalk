@@ -28,14 +28,14 @@ namespace Turbocharged.Beanstalk.Tests
 
         public void Dispose()
         {
-            conn.Close();
+            if (cons != null) cons.Dispose();
+            if (prod != null) prod.Dispose();
         }
 
         async Task ConnectAsync()
         {
-            conn = await BeanstalkConnection.ConnectAsync(hostname, port);
-            cons = conn.GetConsumer();
-            prod = conn.GetProducer();
+            cons = await BeanstalkConnection.ConnectConsumerAsync(hostname, port);
+            prod = await BeanstalkConnection.ConnectProducerAsync(hostname, port);
         }
 
         [Theory]

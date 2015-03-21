@@ -14,13 +14,18 @@ There are other libraries, but they seem to have been abandoned:
 Usage
 -----
 
-    var connection = await BeanstalkConnection.ConnectAsync("localhost", 11300);
+    // Jobs are byte arrays
+    byte[] job = new byte[] { 102, 105, 101, 116, 123, 124, 101, 114, 113 };
 
-    var producer = connection.GetProducer();
+    // A producer exposes methods used for inserting jobs
+    // Most producer methods are affected by UseAsync(tube)
+    var producer = await BeanstalkConnection.ConnectProducerAsync(hostname, port);
     await producer.UseAsync("mytube");
-    await producer.PutAsync(new [] {}, priority: 5, delay: 0, timeToRun: 60);
+    await producer.PutAsync(job, 5, TimeSpan.Zero, TimeSpan.FromSeconds(30));
 
-    var consumer = connection.GetConsumer();
+    // A consumer exposes methods for reserving and deleting jobs
+    // Most consumer methods are affected by WatchAsync(tube)
+    var consumer = await BeanstalkConnection.ConnectConsumerAsync(hostname, port);
     await consumer.WatchAsync("mytube");
     var job = await consumer.ReserveAsync();
 
@@ -31,11 +36,14 @@ Usage
     else
         await consumer.BuryAsync(job.Id, priority: 5);
 
+    producer.Dispose();
+    consumer.Dispose();
+
 
 Goals
 -----
 
-* Simple API
+* Simple API that encourages ease of use
 * Lots of `async` happiness
 
 
