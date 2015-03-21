@@ -24,13 +24,12 @@ namespace Turbocharged.Beanstalk
         {
             _hostname = hostname;
             _port = port;
-            _connection = new PhysicalConnection(hostname, port);
         }
 
         static async Task<BeanstalkConnection> ConnectAsync(string hostname, int port)
         {
             var connection = new BeanstalkConnection(hostname, port);
-            await connection._connection.ConnectAsync(); // Yo dawg
+            connection._connection = await PhysicalConnection.ConnectAsync(hostname, port); // Yo dawg
             return connection;
         }
 

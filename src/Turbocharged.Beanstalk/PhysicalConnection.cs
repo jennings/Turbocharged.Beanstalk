@@ -12,9 +12,6 @@ namespace Turbocharged.Beanstalk
 {
     class PhysicalConnection : IDisposable
     {
-        string _hostname;
-        int _port;
-
         TcpClient _client;
         NetworkStream _stream;
         IDisposable _receiveTask;
@@ -22,28 +19,29 @@ namespace Turbocharged.Beanstalk
         BlockingCollection<Request> _requestsAwaitingResponse =
             new BlockingCollection<Request>(new ConcurrentQueue<Request>());
 
-        public PhysicalConnection(string hostname, int port)
+        PhysicalConnection()
         {
-            _hostname = hostname;
-            _port = port;
             _client = new TcpClient();
         }
 
-        public async Task ConnectAsync()
+        public static async Task<PhysicalConnection> ConnectAsync(string hostname, int port)
         {
-            await _client.ConnectAsync(_hostname, _port);
-            _stream = _client.GetStream();
+            var conn = new PhysicalConnection();
+            await conn._client.ConnectAsync(hostname, port);
+            conn._stream = conn._client.GetStream();
             var cts = new CancellationTokenSource();
 
 #pragma warning disable 4014
-            ReceiveAsync(cts.Token);
+            conn.ReceiveAsync(cts.Token);
 #pragma warning restore 4014
 
-            _receiveTask = Disposable.Create(() =>
+            conn._receiveTask = Disposable.Create(() =>
             {
                 cts.Cancel();
                 cts.Dispose();
             });
+
+            return conn;
         }
 
         public void Dispose()
@@ -78,20 +76,13 @@ namespace Turbocharged.Beanstalk
                 while (true)
                 {
                     pos++;
-                    try
-                    {
-                        // So this is kind of dumb. But since I can't use a
-                        // StreamReader (can't get raw bytes out of it)
-                        // or a BinaryReader (no async methods) and I don't
-                        // want to deal with buffering myself, I'm reading
-                        // one character at a time so I don't read past the CRLF
-                        await _stream.ReadAsync(buffer, pos, 1, token);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        Drain();
-                        return;
-                    }
+
+                    // So this is kind of dumb. But since I can't use a
+                    // StreamReader (can't get raw bytes out of it)
+                    // or a BinaryReader (no async methods) and I don't
+                    // want to deal with buffering myself, I'm reading
+                    // one character at a time so I don't read past the CRLF
+                    await _stream.ReadAsync(buffer, pos, 1, token);
 
                     // We're done if the last two characters were CR LF
                     if (pos > 0 && buffer[pos - 1] == 13 && buffer[pos] == 10)
@@ -112,15 +103,17 @@ namespace Turbocharged.Beanstalk
                     else if (pos == firstLineMaxLength)
                     {
                         // Oops
-                        throw new InvalidOperationException("Unable to read message from server");
+                        break;
                     }
                 }
             }
             catch (Exception)
             {
-                // No way to really recover from this
-                Dispose();
             }
+
+            // No way to really recover from exiting this loop
+            Drain();
+            Dispose();
         }
 
         void Drain()
