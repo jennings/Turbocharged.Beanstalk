@@ -15,6 +15,7 @@ namespace Turbocharged.Beanstalk
         TcpClient _client;
         NetworkStream _stream;
         IDisposable _receiveTask;
+        SemaphoreSlim _insertionLock = new SemaphoreSlim(1, 1);
 
         BlockingCollection<Request> _requestsAwaitingResponse =
             new BlockingCollection<Request>(new ConcurrentQueue<Request>());
@@ -54,16 +55,19 @@ namespace Turbocharged.Beanstalk
             }
         }
 
-        public Task SendAsync<T>(Request<T> request, CancellationToken cancellationToken)
+        public async Task SendAsync<T>(Request<T> request, CancellationToken cancellationToken)
         {
-            // TODO: Need a locking mechanism here so requests don't
-            //       get inserted into the queue in a different order than
-            //       they were sent over the wire (and therefore the
-            //       order the server will respond in)
-
-            _requestsAwaitingResponse.Add(request);
-            var data = request.ToByteArray();
-            return _stream.WriteAsync(data, 0, data.Length, cancellationToken);
+            await _insertionLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                _requestsAwaitingResponse.Add(request);
+                var data = request.ToByteArray();
+                await _stream.WriteAsync(data, 0, data.Length, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                _insertionLock.Release();
+            }
         }
 
         public async Task ReceiveAsync(CancellationToken token)
