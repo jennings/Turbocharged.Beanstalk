@@ -10,21 +10,19 @@ namespace Turbocharged.Beanstalk
     class IgnoreRequest : Request<int>
     {
         public Task<int> Task { get { return _tcs.Task; } }
-        public string Tube { get; set; }
+        public Tube Tube { get; set; }
 
         TaskCompletionSource<int> _tcs = new TaskCompletionSource<int>();
 
-        public IgnoreRequest(string tube)
+        public IgnoreRequest(Tube tube)
         {
-            if (tube == null)
-                throw new InvalidOperationException("Tube must not be null");
-
+            if (tube == null) throw new ArgumentNullException("tube");
             Tube = tube;
         }
 
         public byte[] ToByteArray()
         {
-            return "ignore {0}\r\n".FormatWith(Tube)
+            return "ignore {0}\r\n".FormatWith(Tube.Name)
                 .ToASCIIByteArray();
         }
 

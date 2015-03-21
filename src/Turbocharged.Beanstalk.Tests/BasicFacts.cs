@@ -37,6 +37,13 @@ namespace Turbocharged.Beanstalk.Tests
             prod = await BeanstalkConnection.ConnectProducerAsync(hostname, port);
         }
 
+        async Task DrainUsedTube()
+        {
+            Job job;
+            while ((job = await prod.PeekAsync()) != null)
+                await cons.DeleteAsync(job.Id);
+        }
+
         [Theory]
         [InlineData(0)]
         [InlineData(50)]
@@ -48,6 +55,24 @@ namespace Turbocharged.Beanstalk.Tests
             var job = await prod.PeekAsync(id);
             Assert.Equal(id, job.Id);
             Assert.Equal(data, job.Data[0]);
+        }
+
+        [Fact]
+        public async Task UseWatchAndIgnoreThrowOn200ByteTubeName()
+        {
+            await ConnectAsync();
+            var good = string.Concat(Enumerable.Repeat("a", 199));
+            var bad = string.Concat(Enumerable.Repeat("a", 200));
+
+            // These are fine
+            await prod.UseAsync(good);
+            await cons.WatchAsync(good);
+            await cons.IgnoreAsync(good);
+
+            // Should throw eagerly, no need for async/await
+            Assert.Throws<ArgumentOutOfRangeException>(() => { prod.UseAsync(bad); });
+            Assert.Throws<ArgumentOutOfRangeException>(() => { cons.WatchAsync(bad); });
+            Assert.Throws<ArgumentOutOfRangeException>(() => { cons.IgnoreAsync(bad); });
         }
 
         [Fact]
@@ -69,9 +94,7 @@ namespace Turbocharged.Beanstalk.Tests
             await cons.IgnoreAsync("default");
 
             // Drain the tube
-            Job job;
-            while ((job = await prod.PeekAsync()) != null)
-                await cons.DeleteAsync(job.Id);
+            await DrainUsedTube();
 
             var id = await prod.PutAsync(new byte[] { }, 1, TimeSpan.FromSeconds(2));
             var job1 = await cons.ReserveAsync();

@@ -10,21 +10,19 @@ namespace Turbocharged.Beanstalk
     class UseRequest : Request<string>
     {
         public Task<string> Task { get { return _tcs.Task; } }
-        public string Tube { get; set; }
+        public Tube Tube { get; set; }
 
         TaskCompletionSource<string> _tcs = new TaskCompletionSource<string>();
 
-        public UseRequest(string tube)
+        public UseRequest(Tube tube)
         {
-            if (tube == null)
-                throw new ArgumentNullException("tube");
-
+            if (tube == null) throw new ArgumentNullException("tube");
             Tube = tube;
         }
 
         public byte[] ToByteArray()
         {
-            return "use {0}\r\n".FormatWith(Tube)
+            return "use {0}\r\n".FormatWith(Tube.Name)
                 .ToASCIIByteArray();
         }
 

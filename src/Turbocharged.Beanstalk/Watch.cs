@@ -10,21 +10,19 @@ namespace Turbocharged.Beanstalk
     class WatchRequest : Request<int>
     {
         public Task<int> Task { get { return _tcs.Task; } }
-        public string Tube { get; set; }
+        public Tube Tube { get; set; }
 
         TaskCompletionSource<int> _tcs = new TaskCompletionSource<int>();
 
-        public WatchRequest(string tube)
+        public WatchRequest(Tube tube)
         {
-            if (tube == null)
-                throw new ArgumentNullException("tube");
-
+            if (tube == null) throw new ArgumentNullException("tube");
             Tube = tube;
         }
 
         public byte[] ToByteArray()
         {
-            return "watch {0}\r\n".FormatWith(Tube)
+            return "watch {0}\r\n".FormatWith(Tube.Name)
                 .ToASCIIByteArray();
         }
 
