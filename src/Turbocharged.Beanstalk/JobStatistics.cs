@@ -8,23 +8,6 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    public class JobStatistics
-    {
-        public int Id { get; internal set; }
-        public string Tube { get; internal set; }
-        public JobState State { get; internal set; }
-        public int Priority { get; internal set; }
-        public TimeSpan Age { get; internal set; }
-        public TimeSpan TimeLeft { get; internal set; }
-        public TimeSpan TimeToRun { get; internal set; }
-        public int File { get; internal set; }
-        public int Reserves { get; internal set; }
-        public int Timeouts { get; internal set; }
-        public int Releases { get; internal set; }
-        public int Buries { get; internal set; }
-        public int Kicks { get; internal set; }
-    }
-
     class JobStatisticsRequest : Request<JobStatistics>
     {
         public Task<JobStatistics> Task { get { return _tcs.Task; } }
@@ -103,5 +86,77 @@ namespace Turbocharged.Beanstalk
         {
             _tcs.TrySetCanceled();
         }
+    }
+
+    public class JobStatistics
+    {
+        /// <summary>
+        /// The job ID.
+        /// </summary>
+        public int Id { get; internal set; }
+
+        /// <summary>
+        /// The name of the tube that contains this job.
+        /// </summary>
+        public string Tube { get; internal set; }
+
+        /// <summary>
+        /// The state of the job.
+        /// </summary>
+        public JobState State { get; internal set; }
+
+        /// <summary>
+        /// The priority value set by the put, release, or bury commands.
+        /// </summary>
+        public int Priority { get; internal set; }
+
+        /// <summary>
+        /// The duration since the put command that created this job.
+        /// </summary>
+        public TimeSpan Age { get; internal set; }
+
+        /// <summary>
+        /// The duration until the server puts this job into the ready
+        /// queue. This number is only meaningful if the job is reserved or
+        /// delayed. If the job is reserved and this amount of time elapses
+        /// before its state changes, it is considered to have timed out.
+        /// </summary>
+        public TimeSpan TimeLeft { get; internal set; }
+
+        /// <summary>
+        /// The duration this job may be reserved before it times out.
+        /// </summary>
+        public TimeSpan TimeToRun { get; internal set; }
+
+        /// <summary>
+        /// The number of the earliest binlog file containing this job.
+        /// If -b wasn't used, this will be 0.
+        /// </summary>
+        public int File { get; internal set; }
+
+        /// <summary>
+        /// The number of times this job has been reserved.
+        /// </summary>
+        public int Reserves { get; internal set; }
+
+        /// <summary>
+        /// The number of times this job has timed out during a reservation.
+        /// </summary>
+        public int Timeouts { get; internal set; }
+
+        /// <summary>
+        /// The number of times a client has released this job from a reservation.
+        /// </summary>
+        public int Releases { get; internal set; }
+
+        /// <summary>
+        /// The number of times this job has been buried.
+        /// </summary>
+        public int Buries { get; internal set; }
+
+        /// <summary>
+        /// The number of times this job has been kicked.
+        /// </summary>
+        public int Kicks { get; internal set; }
     }
 }

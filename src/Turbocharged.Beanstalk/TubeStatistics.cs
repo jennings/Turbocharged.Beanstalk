@@ -8,24 +8,6 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    public class TubeStatistics
-    {
-        public string Name { get; set; }
-        public int CurrentJobsUrgent { get; set; }
-        public int CurrentJobsReady { get; set; }
-        public int CurrentJobsReserved { get; set; }
-        public int CurrentJobsDelayed { get; set; }
-        public int CurrentJobsBuried { get; set; }
-        public int TotalJobs { get; set; }
-        public int CurrentUsing { get; set; }
-        public int CurrentWaiting { get; set; }
-        public int CurrentWatching { get; set; }
-        public int DeleteCount { get; set; }
-        public int PauseCount { get; set; }
-        public TimeSpan Pause { get; set; }
-        public TimeSpan PauseTimeLeft  { get; set; }
-    }
-
     class TubeStatisticsRequest : Request<TubeStatistics>
     {
         public Task<TubeStatistics> Task { get { return _tcs.Task; } }
@@ -104,5 +86,79 @@ namespace Turbocharged.Beanstalk
         {
             _tcs.TrySetCanceled();
         }
+    }
+
+    public class TubeStatistics
+    {
+        /// <summary>
+        /// The tube's name.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// The number of ready jobs with Priority less than 1024 in this tube.
+        /// </summary>
+        public int CurrentJobsUrgent { get; set; }
+
+        /// <summary>
+        /// The number of jobs in the ready queue in this tube.
+        /// </summary>
+        public int CurrentJobsReady { get; set; }
+
+        /// <summary>
+        /// The number of jobs reserved by all clients in this tube.
+        /// </summary>
+        public int CurrentJobsReserved { get; set; }
+
+        /// <summary>
+        /// The number of delayed jobs in this tube.
+        /// </summary>
+        public int CurrentJobsDelayed { get; set; }
+
+        /// <summary>
+        /// The number of buried jobs in this tube.
+        /// </summary>
+        public int CurrentJobsBuried { get; set; }
+
+        /// <summary>
+        /// The cumulative count of jobs created in this tube in the current beanstalkd process.
+        /// </summary>
+        public int TotalJobs { get; set; }
+
+        /// <summary>
+        /// The number of open connections that are currently using this tube.
+        /// </summary>
+        public int CurrentUsing { get; set; }
+
+        /// <summary>
+        /// The number of open connections that have issued a reserve command
+        /// while watching this tube but not yet received a response.
+        /// </summary>
+        public int CurrentWaiting { get; set; }
+
+        /// <summary>
+        /// The number of open connections that are currently watching this tube.
+        /// </summary>
+        public int CurrentWatching { get; set; }
+
+        /// <summary>
+        /// The cumulative number of delete commands for this tube.
+        /// </summary>
+        public int DeleteCount { get; set; }
+
+        /// <summary>
+        /// The cumulative number of pause-tube commands for this tube.
+        /// </summary>
+        public int PauseCount { get; set; }
+
+        /// <summary>
+        /// The duration the tube has been paused.
+        /// </summary>
+        public TimeSpan Pause { get; set; }
+
+        /// <summary>
+        /// The duration until the tube is unpaused.
+        /// </summary>
+        public TimeSpan PauseTimeLeft { get; set; }
     }
 }

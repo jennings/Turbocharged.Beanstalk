@@ -78,6 +78,9 @@ namespace Turbocharged.Beanstalk
             }, cancellationToken);
         }
 
+        /// <summary>
+        /// Closes the connection to the Beanstalk server.
+        /// </summary>
         public void Dispose()
         {
             var c = Interlocked.Exchange(ref _connection, null);
