@@ -50,19 +50,45 @@ namespace Turbocharged.Beanstalk
         }
 
         /// <summary>
-        /// Schedulers a worker with a dedicated TCP connection to repeatedly reserve jobs
-        /// from the specified tube and process them.
+        /// Schedules a worker with a dedicated TCP connection to repeatedly reserve jobs
+        /// from the specified tube and process them. The worker will be called back on
+        /// the current SynchronizationContext.
         /// </summary>
+        /// <param name="hostname">The hostname of the Beanstalk server.</param>
+        /// <param name="port">The port number of the Beanstalk server.</param>
+        /// <param name="tube">The tube to watch.</param>
+        /// <param name="worker">The delegate used to processed reserved jobs.</param>
         public static Task<IDisposable> ConnectWorkerAsync(string hostname, int port, string tube, WorkerFunc worker)
         {
             return ConnectWorkerAsync(hostname, port, new[] { tube }, worker);
         }
 
         /// <summary>
-        /// Schedulers a worker with a dedicated TCP connection to repeatedly reserve jobs
+        /// Schedules a worker with a dedicated TCP connection to repeatedly reserve jobs
+        /// from the specified tubes and process them. The worker will be called back on
+        /// the current SynchronizationContext.
+        /// </summary>
+        /// <param name="hostname">The hostname of the Beanstalk server.</param>
+        /// <param name="port">The port number of the Beanstalk server.</param>
+        /// <param name="tubes">The tubes to watch.</param>
+        /// <param name="worker">The delegate used to processed reserved jobs.</param>
+        public static Task<IDisposable> ConnectWorkerAsync(string hostname, int port, ICollection<string> tubes, WorkerFunc worker)
+        {
+            var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
+            return ConnectWorkerAsync(hostname, port, tubes, scheduler, worker);
+        }
+
+        /// <summary>
+        /// Schedules a worker with a dedicated TCP connection to repeatedly reserve jobs
         /// from the specified tubes and process them.
         /// </summary>
-        public static async Task<IDisposable> ConnectWorkerAsync(string hostname, int port, ICollection<string> tubes, WorkerFunc worker)
+        /// <param name="hostname">The hostname of the Beanstalk server.</param>
+        /// <param name="port">The port number of the Beanstalk server.</param>
+        /// <param name="tubes">The tubes to watch.</param>
+        /// <param name="scheduler">The TaskScheduler used when scheduling the worker.</param>
+        /// <param name="worker">The delegate used to processed reserved jobs.</param>
+        /// <returns>A token which stops the worker when disposed.</returns>
+        public static async Task<IDisposable> ConnectWorkerAsync(string hostname, int port, ICollection<string> tubes, TaskScheduler scheduler, WorkerFunc worker)
         {
             var conn = await BeanstalkConnection.ConnectAsync(hostname, port).ConfigureAwait(false);
             try
@@ -79,7 +105,7 @@ namespace Turbocharged.Beanstalk
             }
 
             var cts = new CancellationTokenSource();
-            var task = conn.WorkerLoop(worker, cts.Token);
+            var task = conn.WorkerLoop(worker, scheduler, cts.Token);
             return Disposable.Create(() =>
             {
                 cts.Cancel();
@@ -88,13 +114,34 @@ namespace Turbocharged.Beanstalk
             });
         }
 
-        async Task WorkerLoop(WorkerFunc worker, CancellationToken cancellationToken)
+        async Task WorkerLoop(WorkerFunc worker, TaskScheduler scheduler, CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
                 var job = await ReserveAsync(cancellationToken).ConfigureAwait(false);
                 if (job != null)
-                    await worker(this, job).ConfigureAwait(false);
+                {
+                    try
+                    {
+                        // Details: http://blog.stephencleary.com/2013/08/startnew-is-dangerous.html
+                        await Task.Factory.StartNew(
+                                async () => await worker(this, job),
+                                cancellationToken,
+                                TaskCreationOptions.DenyChildAttach,
+                                scheduler)
+                            .Unwrap()
+                            .ConfigureAwait(false);
+                        continue;
+                    }
+                    catch (Exception)
+                    {
+                        // Carry on outside the catch...
+                    }
+                    // TODO: Should have a WorkerFailureOptions to decide how to handle this
+                    var cons = this as IConsumer;
+                    var stats = await cons.JobStatisticsAsync(job.Id).ConfigureAwait(false);
+                    await cons.BuryAsync(job.Id, stats.Priority).ConfigureAwait(false);
+                }
             }
         }
 
