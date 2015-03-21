@@ -29,7 +29,7 @@ namespace Turbocharged.Beanstalk
         static async Task<BeanstalkConnection> ConnectAsync(string hostname, int port)
         {
             var connection = new BeanstalkConnection(hostname, port);
-            connection._connection = await PhysicalConnection.ConnectAsync(hostname, port); // Yo dawg
+            connection._connection = await PhysicalConnection.ConnectAsync(hostname, port).ConfigureAwait(false); // Yo dawg
             return connection;
         }
 
@@ -38,7 +38,7 @@ namespace Turbocharged.Beanstalk
         /// </summary>
         public static async Task<IConsumer> ConnectConsumerAsync(string hostname, int port)
         {
-            return await ConnectAsync(hostname, port);
+            return await ConnectAsync(hostname, port).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Turbocharged.Beanstalk
         /// </summary>
         public static async Task<IProducer> ConnectProducerAsync(string hostname, int port)
         {
-            return await ConnectAsync(hostname, port);
+            return await ConnectAsync(hostname, port).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -64,13 +64,13 @@ namespace Turbocharged.Beanstalk
         /// </summary>
         public static async Task<IDisposable> ConnectWorkerAsync(string hostname, int port, ICollection<string> tubes, WorkerFunc worker)
         {
-            var conn = await BeanstalkConnection.ConnectAsync(hostname, port);
+            var conn = await BeanstalkConnection.ConnectAsync(hostname, port).ConfigureAwait(false);
             try
             {
                 foreach (var tube in tubes)
-                    await ((IConsumer)conn).WatchAsync(tube);
+                    await ((IConsumer)conn).WatchAsync(tube).ConfigureAwait(false);
                 if (!tubes.Contains("default"))
-                    await ((IConsumer)conn).IgnoreAsync("default");
+                    await ((IConsumer)conn).IgnoreAsync("default").ConfigureAwait(false);
             }
             catch
             {

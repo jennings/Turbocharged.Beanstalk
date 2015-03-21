@@ -27,7 +27,7 @@ namespace Turbocharged.Beanstalk
         public static async Task<PhysicalConnection> ConnectAsync(string hostname, int port)
         {
             var conn = new PhysicalConnection();
-            await conn._client.ConnectAsync(hostname, port);
+            await conn._client.ConnectAsync(hostname, port).ConfigureAwait(false);
             conn._stream = conn._client.GetStream();
             var cts = new CancellationTokenSource();
 
@@ -82,7 +82,7 @@ namespace Turbocharged.Beanstalk
                     // or a BinaryReader (no async methods) and I don't
                     // want to deal with buffering myself, I'm reading
                     // one character at a time so I don't read past the CRLF
-                    await _stream.ReadAsync(buffer, pos, 1, token);
+                    await _stream.ReadAsync(buffer, pos, 1, token).ConfigureAwait(false);
 
                     // We're done if the last two characters were CR LF
                     if (pos > 0 && buffer[pos - 1] == 13 && buffer[pos] == 10)
