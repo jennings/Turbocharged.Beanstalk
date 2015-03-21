@@ -72,7 +72,8 @@ namespace Turbocharged.Beanstalk
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     var job = await ReserveAsync(cancellationToken).ConfigureAwait(false);
-                    await worker(this, job).ConfigureAwait(false);
+                    if (job != null)
+                        await worker(this, job).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }

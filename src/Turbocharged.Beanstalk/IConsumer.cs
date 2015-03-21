@@ -14,14 +14,15 @@ namespace Turbocharged.Beanstalk
         /// <summary>
         /// Reserve a job, waiting indefinitely.
         /// </summary>
-        /// <returns>A reserved job.</returns>
+        /// <returns>A reserved job, or null on a DEADLINE_SOON response.</returns>
         Task<Job> ReserveAsync();
 
         /// <summary>
         /// Reserve a job, waiting for the specified timeout.
         /// </summary>
         /// <param name="timeout"></param>
-        /// <returns>A reserved job, or null if the timeout elapses.</returns>
+        /// <returns>A reserved job, or null on a DEADLINE_SOON response.</returns>
+        /// <exception cref="System.TimeoutException">Thrown when the timeout period elapses.</exception>
         Task<Job> ReserveAsync(TimeSpan timeout);
     }
 }

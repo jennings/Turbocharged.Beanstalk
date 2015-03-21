@@ -55,15 +55,22 @@ namespace SampleApp
             var buffer = new byte[4];
             new Random().NextBytes(buffer);
             var id = await producer.PutAsync(buffer, 1, TimeSpan.FromSeconds(10));
-            putJobs.Add(new { Id = id, Data = buffer });
+            putJobs.Add(new { Id = id, Length = buffer.Length });
         }
 
         async void reserveButton_Click(object sender, EventArgs e)
         {
             reserveButton.Enabled = false;
-            var job = await consumer.ReserveAsync();
+            try
+            {
+                var job = await consumer.ReserveAsync(TimeSpan.FromSeconds(30));
+                if (job != null)
+                    reservedJobs.Add(job);
+            }
+            catch (TimeoutException)
+            {
+            }
             reserveButton.Enabled = true;
-            reservedJobs.Add(job);
         }
 
         async void deleteJobButton_Click(object sender, EventArgs e)

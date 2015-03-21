@@ -61,8 +61,11 @@ namespace Turbocharged.Beanstalk
                 case "FOUND":
                     var id = Convert.ToInt32(parts[1]);
                     var bytes = Convert.ToInt32(parts[2]);
-                    var descr = ReserveRequest.GetJobFromBuffer(id, stream, bytes);
-                    _tcs.SetResult(descr);
+                    Job descr;
+                    if (ReserveRequest.TryGetJobFromBuffer(id, stream, bytes, out descr))
+                        _tcs.SetResult(descr);
+                    else
+                        _tcs.SetException(new Exception("Unable to parse job description"));
                     return;
 
                 case "NOT_FOUND":

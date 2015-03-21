@@ -40,8 +40,11 @@ namespace Turbocharged.Beanstalk
                 case "RESERVED":
                     var id = Convert.ToInt32(parts[1]);
                     var bytes = Convert.ToInt32(parts[2]);
-                    var descr = GetJobFromBuffer(id, stream, bytes);
-                    _tcs.SetResult(descr);
+                    Job descr;
+                    if (TryGetJobFromBuffer(id, stream, bytes, out descr))
+                        _tcs.SetResult(descr);
+                    else
+                        _tcs.SetException(new Exception("Unable to parse job description"));
                     return;
 
                 case "TIMED_OUT":
@@ -49,8 +52,7 @@ namespace Turbocharged.Beanstalk
                     return;
 
                 case "DEADLINE_SOON":
-                    // TODO: WTF do I do with this? Reschedule?
-                    _tcs.SetException(new Exception("Deadline soon"));
+                    _tcs.SetResult(null);
                     return;
 
                 default:
@@ -59,22 +61,24 @@ namespace Turbocharged.Beanstalk
             }
         }
 
-        internal static Job GetJobFromBuffer(int id, NetworkStream stream, int bytes)
+        internal static bool TryGetJobFromBuffer(int id, NetworkStream stream, int bytes, out Job job)
         {
             var buffer = new byte[bytes];
             var readBytes = stream.Read(buffer, 0, bytes);
             if (readBytes != bytes)
             {
-                // TODO: Now what, genius?
+                job = null;
+                return false;
             }
             stream.ReadByte(); // CR
             stream.ReadByte(); // LF
 
-            return new Job
+            job = new Job
             {
                 Id = id,
                 Data = buffer,
             };
+            return true;
         }
 
         public void Cancel()
