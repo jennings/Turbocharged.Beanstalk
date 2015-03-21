@@ -358,7 +358,7 @@ namespace Turbocharged.Beanstalk.Tests
         {
             await ConnectAsync();
             var stats = await prod.ServerStatisticsAsync();
-            Assert.NotEmpty(stats.Id);
+            Assert.False(string.IsNullOrWhiteSpace(stats.Id));
             Assert.True(stats.CurrentConnections > 0);
         }
     }

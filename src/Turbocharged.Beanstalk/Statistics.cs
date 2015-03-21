@@ -91,9 +91,6 @@ namespace Turbocharged.Beanstalk
                                 case "id": result.Id = pair.Value; break;
                                 case "hostname": result.Hostname = pair.Value; break;
                                 case "version": result.Version = pair.Value; break;
-                                default:
-                                    System.Diagnostics.Debugger.Break();
-                                    break;
                             }
                         }
                         _tcs.SetResult(result);
