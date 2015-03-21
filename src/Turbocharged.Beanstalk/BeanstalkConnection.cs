@@ -88,17 +88,14 @@ namespace Turbocharged.Beanstalk
             });
         }
 
-        Task WorkerLoop(WorkerFunc worker, CancellationToken cancellationToken)
+        async Task WorkerLoop(WorkerFunc worker, CancellationToken cancellationToken)
         {
-            return Task.Run(async () =>
+            while (!cancellationToken.IsCancellationRequested)
             {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    var job = await ReserveAsync(cancellationToken).ConfigureAwait(false);
-                    if (job != null)
-                        await worker(this, job).ConfigureAwait(false);
-                }
-            }, cancellationToken);
+                var job = await ReserveAsync(cancellationToken).ConfigureAwait(false);
+                if (job != null)
+                    await worker(this, job).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
