@@ -35,6 +35,7 @@
             this.connectButton = new System.Windows.Forms.Button();
             this.disconnectButton = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.putJobsListBox = new System.Windows.Forms.ListBox();
             this.putJobButton = new System.Windows.Forms.Button();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.label7 = new System.Windows.Forms.Label();
@@ -50,7 +51,7 @@
             this.reservedJobsListBox = new System.Windows.Forms.ListBox();
             this.deleteJobButton = new System.Windows.Forms.Button();
             this.reserveButton = new System.Windows.Forms.Button();
-            this.putJobsListBox = new System.Windows.Forms.ListBox();
+            this.spawnWorkerButton = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
@@ -122,6 +123,15 @@
             this.groupBox1.TabIndex = 6;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Put";
+            // 
+            // putJobsListBox
+            // 
+            this.putJobsListBox.FormattingEnabled = true;
+            this.putJobsListBox.ItemHeight = 20;
+            this.putJobsListBox.Location = new System.Drawing.Point(22, 95);
+            this.putJobsListBox.Name = "putJobsListBox";
+            this.putJobsListBox.Size = new System.Drawing.Size(426, 664);
+            this.putJobsListBox.TabIndex = 14;
             // 
             // putJobButton
             // 
@@ -265,20 +275,22 @@
             this.reserveButton.UseVisualStyleBackColor = true;
             this.reserveButton.Click += new System.EventHandler(this.reserveButton_Click);
             // 
-            // putJobsListBox
+            // spawnWorkerButton
             // 
-            this.putJobsListBox.FormattingEnabled = true;
-            this.putJobsListBox.ItemHeight = 20;
-            this.putJobsListBox.Location = new System.Drawing.Point(22, 95);
-            this.putJobsListBox.Name = "putJobsListBox";
-            this.putJobsListBox.Size = new System.Drawing.Size(426, 664);
-            this.putJobsListBox.TabIndex = 14;
+            this.spawnWorkerButton.Location = new System.Drawing.Point(863, 15);
+            this.spawnWorkerButton.Name = "spawnWorkerButton";
+            this.spawnWorkerButton.Size = new System.Drawing.Size(148, 30);
+            this.spawnWorkerButton.TabIndex = 8;
+            this.spawnWorkerButton.Text = "Spawn Worker";
+            this.spawnWorkerButton.UseVisualStyleBackColor = true;
+            this.spawnWorkerButton.Click += new System.EventHandler(this.spawnWorkerButton_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1070, 889);
+            this.Controls.Add(this.spawnWorkerButton);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.disconnectButton);
@@ -322,6 +334,7 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox stateTextBox;
         private System.Windows.Forms.ListBox putJobsListBox;
+        private System.Windows.Forms.Button spawnWorkerButton;
     }
 }
 

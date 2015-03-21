@@ -93,5 +93,11 @@ namespace SampleApp
             ttrTextBox.Text = stats.TimeToRun.ToString();
             stateTextBox.Text = stats.State.ToString();
         }
+
+        private void spawnWorkerButton_Click(object sender, EventArgs e)
+        {
+            var form = new WorkerForm(hostnameTextBox.Text, Convert.ToInt32(portTextBox.Text));
+            form.Show();
+        }
     }
 }
