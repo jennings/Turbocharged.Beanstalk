@@ -2,8 +2,9 @@ Turbocharged.Beanstalk
 ======================
 
 [![Build status](https://ci.appveyor.com/api/projects/status/9ydx1vwh8hjxhv4w?svg=true)](https://ci.appveyor.com/project/jennings/turbocharged-beanstalk)
+[![NuGet](https://img.shields.io/nuget/v/Turbocharged.Beanstalk.svg)](http://www.nuget.org/packages/Turbocharged.Beanstalk/)
 
-A .NET library for using [Beanstalk][beanstalk] filled with `async` happiness.
+A [Beanstalk][beanstalk] .NET client library filled with `async` happiness.
 
 Don't like `async`? That's cool, no problem. You might like
 [libBeanstalk.NET][libbeanstalk] instead.
@@ -11,6 +12,10 @@ Don't like `async`? That's cool, no problem. You might like
 
 Usage
 -----
+
+Do the normal thing:
+
+    PM> Install-Package Turbocharged.Beanstalk
 
 ### Producing Jobs
 
