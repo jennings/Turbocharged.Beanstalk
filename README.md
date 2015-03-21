@@ -3,12 +3,10 @@ Turbocharged.Beanstalk
 
 [![Build status](https://ci.appveyor.com/api/projects/status/9ydx1vwh8hjxhv4w?svg=true)](https://ci.appveyor.com/project/jennings/turbocharged-beanstalk)
 
-A .NET library for using [Beanstalk][beanstalk].
+A .NET library for using [Beanstalk][beanstalk] filled with `async` happiness.
 
-There are other libraries, but they seem to have been abandoned:
-
-* [libBeanstalk.NET][libbeanstalk]
-* [Beanstalk-Sharp][beanstalk-sharp]
+Don't like `async`? That's cool, no problem. You might like
+[libBeanstalk.NET][libbeanstalk] instead.
 
 
 Usage
@@ -72,7 +70,7 @@ Goals
 -----
 
 * Simple API that encourages ease of use
-* Lots of `async` happiness
+* Teach myself how to properly use the shiny asynchrony features in C# 5.0.
 
 
 License
@@ -83,4 +81,3 @@ The MIT License. See `LICENSE.md`.
 
 [beanstalk]: http://kr.github.io/beanstalkd/
 [libbeanstalk]: https://github.com/sdether/libBeanstalk.NET
-[beanstalk-sharp]: https://github.com/jtdowney/beanstalk-sharp
