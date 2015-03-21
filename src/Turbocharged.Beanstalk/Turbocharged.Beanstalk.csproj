@@ -46,6 +46,7 @@
     <Compile Include="Release.cs" />
     <Compile Include="Delete.cs" />
     <Compile Include="Tube.cs" />
+    <Compile Include="Statistics.cs" />
     <Compile Include="TubeStatistics.cs" />
     <Compile Include="JobStatistics.cs" />
     <Compile Include="System\EncodingExtensions.cs" />

@@ -66,5 +66,10 @@ namespace Turbocharged.Beanstalk
         /// </summary>
         /// <returns>A job, or null if the job was not found.</returns>
         Task<Job> PeekAsync(int id);
+
+        /// <summary>
+        /// Retrieves statistics about the connected server.
+        /// </summary>
+        Task<Statistics> ServerStatisticsAsync();
     }
 }

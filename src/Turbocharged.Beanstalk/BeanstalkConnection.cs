@@ -140,6 +140,12 @@ namespace Turbocharged.Beanstalk
             return SendAndGetResult(request);
         }
 
+        Task<Statistics> IProducer.ServerStatisticsAsync()
+        {
+            var request = new StatisticsRequest();
+            return SendAndGetResult(request);
+        }
+
         #endregion
 
         #region Consumer
@@ -224,6 +230,11 @@ namespace Turbocharged.Beanstalk
         Task<TubeStatistics> IWorker.TubeStatisticsAsync(string tube)
         {
             return ((IProducer)this).TubeStatisticsAsync(tube);
+        }
+
+        Task<Statistics> IWorker.ServerStatisticsAsync()
+        {
+            return ((IProducer)this).ServerStatisticsAsync();
         }
 
         #endregion

@@ -325,5 +325,14 @@ namespace Turbocharged.Beanstalk.Tests
 
             Assert.Equal(finalValue, counter);
         }
+
+        [Fact]
+        public async Task ServerStatisticsWorks()
+        {
+            await ConnectAsync();
+            var stats = await prod.ServerStatisticsAsync();
+            Assert.NotEmpty(stats.Id);
+            Assert.True(stats.CurrentConnections > 0);
+        }
     }
 }

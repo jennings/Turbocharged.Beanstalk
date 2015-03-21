@@ -13,16 +13,16 @@ namespace Turbocharged.Beanstalk
         public Task<TubeStatistics> Task { get { return _tcs.Task; } }
 
         TaskCompletionSource<TubeStatistics> _tcs = new TaskCompletionSource<TubeStatistics>();
-        string _tube;
+        Tube _tube;
 
-        public TubeStatisticsRequest(string tube)
+        public TubeStatisticsRequest(Tube tube)
         {
             _tube = tube;
         }
 
         public byte[] ToByteArray()
         {
-            return "stats-tube {0}\r\n".FormatWith(_tube).ToASCIIByteArray();
+            return "stats-tube {0}\r\n".FormatWith(_tube.Name).ToASCIIByteArray();
         }
 
         public void Process(string firstLine, NetworkStream stream)

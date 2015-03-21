@@ -63,5 +63,10 @@ namespace Turbocharged.Beanstalk
         /// Retrieves statistics about the specified tube.
         /// </summary>
         Task<TubeStatistics> TubeStatisticsAsync(string tube);
+
+        /// <summary>
+        /// Retrieves statistics about the connected server.
+        /// </summary>
+        Task<Statistics> ServerStatisticsAsync();
     }
 }
