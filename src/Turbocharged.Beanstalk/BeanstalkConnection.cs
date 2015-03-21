@@ -51,7 +51,7 @@ namespace Turbocharged.Beanstalk
         }
 
         /// <summary>
-        /// Schedulers a worker to repeatedly reserve jobs and process them.
+        /// Schedulers a worker with a dedicated TCP connection to repeatedly reserve jobs and process them.
         /// </summary>
         public static async Task<IDisposable> ConnectWorkerAsync(string hostname, int port, WorkerFunc worker)
         {
@@ -62,7 +62,7 @@ namespace Turbocharged.Beanstalk
             {
                 cts.Cancel();
                 cts.Dispose();
-                ((IDisposable)conn).Dispose();
+                conn.Dispose();
             });
         }
 
@@ -78,25 +78,13 @@ namespace Turbocharged.Beanstalk
             }, cancellationToken);
         }
 
-        public void Close()
+        public void Dispose()
         {
-            var c = _connection;
-            _connection = null;
+            var c = Interlocked.Exchange(ref _connection, null);
             if (c != null)
             {
-                try
-                {
-                    c.Close();
-                }
-                catch
-                {
-                }
+                c.Dispose();
             }
-        }
-
-        void IDisposable.Dispose()
-        {
-            Close();
         }
 
         #endregion
@@ -239,7 +227,9 @@ namespace Turbocharged.Beanstalk
 
         async Task<T> SendAndGetResult<T>(Request<T> request, CancellationToken cancellationToken)
         {
-            await _connection.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            var conn = _connection;
+            if (conn == null) throw new ObjectDisposedException("_connection");
+            await conn.SendAsync(request, cancellationToken).ConfigureAwait(false);
             return await request.Task.ConfigureAwait(false);
         }
     }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    class PhysicalConnection
+    class PhysicalConnection : IDisposable
     {
         string _hostname;
         int _port;
@@ -46,8 +46,9 @@ namespace Turbocharged.Beanstalk
             });
         }
 
-        public void Close()
+        public void Dispose()
         {
+            using (_client)
             using (_stream)
             {
                 _receiveTask.Dispose();
@@ -88,11 +89,7 @@ namespace Turbocharged.Beanstalk
                     }
                     catch (OperationCanceledException)
                     {
-                        Request request;
-                        while (_requestsAwaitingResponse.TryTake(out request))
-                        {
-                            request.Cancel();
-                        }
+                        Drain();
                         return;
                     }
 
@@ -122,7 +119,16 @@ namespace Turbocharged.Beanstalk
             catch (Exception)
             {
                 // No way to really recover from this
-                Close();
+                Dispose();
+            }
+        }
+
+        void Drain()
+        {
+            Request request;
+            while (_requestsAwaitingResponse.TryTake(out request))
+            {
+                request.Cancel();
             }
         }
     }
