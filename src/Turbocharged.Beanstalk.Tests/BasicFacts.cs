@@ -224,5 +224,53 @@ namespace Turbocharged.Beanstalk.Tests
             Assert.True(1 <= stats.CurrentJobsDelayed);
             Assert.True(1 <= stats.CurrentUsing);
         }
+
+        [Fact]
+        public async Task ConnectWorker_ConsumesJobsAsTheyAppear()
+        {
+            await ConnectAsync();
+
+            int counter = 0;
+            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, async (c, job) =>
+            {
+                counter++;
+                await c.DeleteAsync(job.Id);
+            });
+
+            using (await worker)
+            {
+                await prod.PutAsync(new byte[] { }, 1, ZeroSeconds, TenSeconds);
+                await Task.Delay(200);
+            }
+
+            Assert.NotEqual(0, counter);
+        }
+
+        [Fact]
+        public async Task ConnectWorker_StopsWhenDisposed()
+        {
+            await ConnectAsync();
+
+            int counter = 0;
+            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, async (c, job) =>
+            {
+                counter++;
+                await c.DeleteAsync(job.Id);
+            });
+
+            using (await worker)
+            {
+                await prod.PutAsync(new byte[] { }, 1, ZeroSeconds, TenSeconds);
+                await Task.Delay(200);
+            }
+
+            Assert.True(counter > 0);
+            var finalValue = counter;
+
+            await prod.PutAsync(new byte[] { }, 1, ZeroSeconds, TenSeconds);
+            await Task.Delay(200);
+
+            Assert.Equal(finalValue, counter);
+        }
     }
 }

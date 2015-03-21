@@ -9,7 +9,7 @@ namespace Turbocharged.Beanstalk
     /// <summary>
     /// Provides methods useful for inserting jobs into Beanstalk.
     /// </summary>
-    public interface IProducer
+    public interface IProducer : IDisposable
     {
         /// <summary>
         /// Uses the specified tube. Jobs will be inserted into the currently-used tube.

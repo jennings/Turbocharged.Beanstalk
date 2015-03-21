@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
+    using WorkerFunc = Func<IWorker, Job, Task>;
+
     /// <summary>
     /// A connection to a Beanstalk server.
     /// </summary>
@@ -44,6 +46,34 @@ namespace Turbocharged.Beanstalk
         public static async Task<IProducer> ConnectProducerAsync(string hostname, int port)
         {
             return await ConnectAsync(hostname, port);
+        }
+
+        /// <summary>
+        /// Schedulers a worker to repeatedly reserve jobs and process them.
+        /// </summary>
+        public static async Task<IDisposable> ConnectWorkerAsync(string hostname, int port, WorkerFunc worker)
+        {
+            var conn = await BeanstalkConnection.ConnectAsync(hostname, port);
+            var cts = new CancellationTokenSource();
+            var task = conn.WorkerLoop(worker, cts.Token);
+            return Disposable.Create(() =>
+            {
+                cts.Cancel();
+                cts.Dispose();
+                ((IDisposable)conn).Dispose();
+            });
+        }
+
+        Task WorkerLoop(WorkerFunc worker, CancellationToken cancellationToken)
+        {
+            return Task.Run(async () =>
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    var job = await ReserveAsync(cancellationToken).ConfigureAwait(false);
+                    await worker(this, job).ConfigureAwait(false);
+                }
+            }, cancellationToken);
         }
 
         public void Close()
@@ -114,24 +144,6 @@ namespace Turbocharged.Beanstalk
 
         #region Consumer
 
-        Task<int> IConsumer.WatchAsync(string tube)
-        {
-            var request = new WatchRequest(tube);
-            return SendAndGetResult(request);
-        }
-
-        Task<int> IConsumer.IgnoreAsync(string tube)
-        {
-            var request = new IgnoreRequest(tube);
-            return SendAndGetResult(request);
-        }
-
-        Task<List<string>> IConsumer.WatchedAsync()
-        {
-            var request = new WatchedRequest();
-            return SendAndGetResult(request);
-        }
-
         Task<Job> IConsumer.ReserveAsync(TimeSpan timeout)
         {
             var request = new ReserveRequest(timeout);
@@ -144,49 +156,84 @@ namespace Turbocharged.Beanstalk
             return SendAndGetResult(request);
         }
 
-        Task<Job> IConsumer.PeekAsync(int id)
+        #endregion
+
+        #region Worker
+
+        // This is purposefully private and not part of the IConsumer
+        // interface, it exists for worker loops
+        Task<Job> ReserveAsync(CancellationToken cancellationToken)
+        {
+            var request = new ReserveRequest();
+            return SendAndGetResult(request, cancellationToken);
+        }
+
+        Task<int> IWorker.WatchAsync(string tube)
+        {
+            var request = new WatchRequest(tube);
+            return SendAndGetResult(request);
+        }
+
+        Task<int> IWorker.IgnoreAsync(string tube)
+        {
+            var request = new IgnoreRequest(tube);
+            return SendAndGetResult(request);
+        }
+
+        Task<List<string>> IWorker.WatchedAsync()
+        {
+            var request = new WatchedRequest();
+            return SendAndGetResult(request);
+        }
+
+        Task<Job> IWorker.PeekAsync(int id)
         {
             return ((IProducer)this).PeekAsync(id);
         }
 
-        Task<bool> IConsumer.DeleteAsync(int id)
+        Task<bool> IWorker.DeleteAsync(int id)
         {
             var request = new DeleteRequest(id);
             return SendAndGetResult(request);
         }
 
-        Task<bool> IConsumer.ReleaseAsync(int id, int priority, TimeSpan delay)
+        Task<bool> IWorker.ReleaseAsync(int id, int priority, TimeSpan delay)
         {
             var request = new ReleaseRequest(id, priority, (int)delay.TotalSeconds);
             return SendAndGetResult(request);
         }
 
-        Task<bool> IConsumer.BuryAsync(int id, int priority)
+        Task<bool> IWorker.BuryAsync(int id, int priority)
         {
             var request = new BuryRequest(id, priority);
             return SendAndGetResult(request);
         }
 
-        Task<bool> IConsumer.TouchAsync(int id)
+        Task<bool> IWorker.TouchAsync(int id)
         {
             var request = new TouchRequest(id);
             return SendAndGetResult(request);
         }
 
-        Task<JobStatistics> IConsumer.JobStatisticsAsync(int id)
+        Task<JobStatistics> IWorker.JobStatisticsAsync(int id)
         {
             var request = new JobStatisticsRequest(id);
             return SendAndGetResult(request);
         }
 
-        Task<TubeStatistics> IConsumer.TubeStatisticsAsync(string tube)
+        Task<TubeStatistics> IWorker.TubeStatisticsAsync(string tube)
         {
             return ((IProducer)this).TubeStatisticsAsync(tube);
         }
 
         #endregion
 
-        async Task<T> SendAndGetResult<T>(Request<T> request)
+        Task<T> SendAndGetResult<T>(Request<T> request)
+        {
+            return SendAndGetResult(request, CancellationToken.None);
+        }
+
+        async Task<T> SendAndGetResult<T>(Request<T> request, CancellationToken cancellationToken)
         {
             await _connection.SendAsync(request, cancellationToken).ConfigureAwait(false);
             return await request.Task.ConfigureAwait(false);
