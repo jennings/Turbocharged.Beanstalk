@@ -98,7 +98,7 @@ namespace Turbocharged.Beanstalk
                     {
                         // We have a line, make it a string and send it to whoever is waiting for it.
                         var incoming = buffer.ToASCIIString(0, pos - 1);
-                        var request = _requestsAwaitingResponse.Take();
+                        var request = _requestsAwaitingResponse.Take(token);
                         try
                         {
                             request.Process(incoming, _stream);
