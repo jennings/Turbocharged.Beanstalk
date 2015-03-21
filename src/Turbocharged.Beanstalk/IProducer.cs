@@ -9,7 +9,7 @@ namespace Turbocharged.Beanstalk
     /// <summary>
     /// Provides methods useful for inserting jobs into Beanstalk.
     /// </summary>
-    public interface IProducer : IDisposable
+    public interface IProducer : IServer, IDisposable
     {
         /// <summary>
         /// Uses the specified tube. Jobs will be inserted into the currently-used tube.
@@ -58,15 +58,5 @@ namespace Turbocharged.Beanstalk
         /// </summary>
         /// <returns>A job, or null if no jobs are in the specified state.</returns>
         Task<Job> PeekAsync(JobState state);
-
-        /// <summary>
-        /// Retrieves statistics about the specified tube.
-        /// </summary>
-        Task<TubeStatistics> TubeStatisticsAsync(string tube);
-
-        /// <summary>
-        /// Retrieves statistics about the connected server.
-        /// </summary>
-        Task<Statistics> ServerStatisticsAsync();
     }
 }

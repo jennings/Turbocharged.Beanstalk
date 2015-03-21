@@ -10,7 +10,7 @@ namespace Turbocharged.Beanstalk
     /// Provides methods useful for inspecting jobs and working with jobs that have
     /// already been reserved.
     /// </summary>
-    public interface IWorker
+    public interface IWorker : IServer
     {
         /// <summary>
         /// Deletes the specified job.
@@ -32,16 +32,6 @@ namespace Turbocharged.Beanstalk
         /// Deletes the specified job.
         /// </summary>
         Task<bool> TouchAsync(int id);
-
-        /// <summary>
-        /// Returns statistics about a specified job.
-        /// </summary>
-        Task<JobStatistics> JobStatisticsAsync(int id);
-
-        /// <summary>
-        /// Retrieves statistics about the specified tube.
-        /// </summary>
-        Task<TubeStatistics> TubeStatisticsAsync(string tube);
 
         /// <summary>
         /// Begins watching a tube.
@@ -66,10 +56,5 @@ namespace Turbocharged.Beanstalk
         /// </summary>
         /// <returns>A job, or null if the job was not found.</returns>
         Task<Job> PeekAsync(int id);
-
-        /// <summary>
-        /// Retrieves statistics about the connected server.
-        /// </summary>
-        Task<Statistics> ServerStatisticsAsync();
     }
 }

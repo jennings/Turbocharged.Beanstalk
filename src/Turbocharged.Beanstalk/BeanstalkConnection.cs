@@ -11,7 +11,7 @@ namespace Turbocharged.Beanstalk
     /// <summary>
     /// A connection to a Beanstalk server.
     /// </summary>
-    public sealed class BeanstalkConnection : IProducer, IConsumer, IDisposable
+    public sealed class BeanstalkConnection : IProducer, IConsumer, IServer, IDisposable
     {
         string _hostname;
         int _port;
@@ -134,18 +134,6 @@ namespace Turbocharged.Beanstalk
             return SendAndGetResult(request);
         }
 
-        Task<TubeStatistics> IProducer.TubeStatisticsAsync(string tube)
-        {
-            var request = new TubeStatisticsRequest(tube);
-            return SendAndGetResult(request);
-        }
-
-        Task<Statistics> IProducer.ServerStatisticsAsync()
-        {
-            var request = new StatisticsRequest();
-            return SendAndGetResult(request);
-        }
-
         #endregion
 
         #region Consumer
@@ -221,21 +209,28 @@ namespace Turbocharged.Beanstalk
             return SendAndGetResult(request);
         }
 
-        Task<JobStatistics> IWorker.JobStatisticsAsync(int id)
+        #endregion
+
+        #region Server
+
+        Task<JobStatistics> IServer.JobStatisticsAsync(int id)
         {
             var request = new JobStatisticsRequest(id);
             return SendAndGetResult(request);
         }
 
-        Task<TubeStatistics> IWorker.TubeStatisticsAsync(string tube)
+        Task<TubeStatistics> IServer.TubeStatisticsAsync(string tube)
         {
-            return ((IProducer)this).TubeStatisticsAsync(tube);
+            var request = new TubeStatisticsRequest(tube);
+            return SendAndGetResult(request);
         }
 
-        Task<Statistics> IWorker.ServerStatisticsAsync()
+        Task<Statistics> IServer.ServerStatisticsAsync()
         {
-            return ((IProducer)this).ServerStatisticsAsync();
+            var request = new StatisticsRequest();
+            return SendAndGetResult(request);
         }
+
 
         #endregion
 
