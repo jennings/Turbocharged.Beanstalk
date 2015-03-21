@@ -60,6 +60,37 @@ namespace Turbocharged.Beanstalk.Tests
         }
 
         [Fact]
+        public async Task ReserveReturnsNullOnDeadlineSoon()
+        {
+            await ConnectAsync();
+            var tube = "reserve-returns-null-on-deadline-soon";
+            await prod.UseAsync(tube);
+            await cons.WatchAsync(tube);
+            await cons.IgnoreAsync("default");
+
+            // Drain the tube
+            Job job;
+            while ((job = await prod.PeekAsync()) != null)
+                await cons.DeleteAsync(job.Id);
+
+            var id = await prod.PutAsync(new byte[] { }, 1, TimeSpan.FromSeconds(2));
+            var job1 = await cons.ReserveAsync();
+            var job2 = await cons.ReserveAsync();
+            Assert.Equal(id, job1.Id);
+            Assert.Null(job2);
+        }
+
+        [Fact]
+        public async Task ReserveThrowsOnTimedOut()
+        {
+            await ConnectAsync();
+            await cons.WatchAsync("empty");
+            await cons.IgnoreAsync("default");
+
+            await Assert.ThrowsAsync<TimeoutException>(async () => await cons.ReserveAsync(ZeroSeconds));
+        }
+
+        [Fact]
         public async Task CanDeleteAJob()
         {
             await ConnectAsync();
