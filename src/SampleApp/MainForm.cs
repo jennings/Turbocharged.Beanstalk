@@ -11,14 +11,19 @@ using Turbocharged.Beanstalk;
 
 namespace SampleApp
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         IConsumer consumer;
         IProducer producer;
 
-        public Form1()
+        BindingList<object> putJobs = new BindingList<object>();
+        BindingList<Job> reservedJobs = new BindingList<Job>();
+
+        public MainForm()
         {
             InitializeComponent();
+            putJobsListBox.DataSource = putJobs;
+            reservedJobsListBox.DataSource = reservedJobs;
         }
 
         async void connectButton_Click(object sender, EventArgs e)
@@ -50,22 +55,36 @@ namespace SampleApp
             var buffer = new byte[4];
             new Random().NextBytes(buffer);
             var id = await producer.PutAsync(buffer, 1, TimeSpan.FromSeconds(10));
-            putJobsLog.AppendText(string.Format("Put job {0} - {1:X} {2:X} {3:X} {4:X}\n", id, buffer[0], buffer[1], buffer[2], buffer[3]));
+            putJobs.Add(new { Id = id, Data = buffer });
         }
 
-        private async void button2_Click(object sender, EventArgs e)
+        async void reserveButton_Click(object sender, EventArgs e)
         {
+            reserveButton.Enabled = false;
             var job = await consumer.ReserveAsync();
+            reserveButton.Enabled = true;
+            reservedJobs.Add(job);
+        }
 
-            var sb = new StringBuilder()
-                .AppendFormat("Reserved job {0} - ", job.Id);
+        async void deleteJobButton_Click(object sender, EventArgs e)
+        {
+            var job = (Job)reservedJobsListBox.SelectedItem;
+            if (job == null) return;
+            var deleted = await consumer.DeleteAsync(job.Id);
+            reservedJobs.Remove(job);
+        }
 
-            foreach (var b in job.Data)
-                sb.AppendFormat("{0:X} ", b);
-
-            sb.AppendLine();
-
-            reservedJobsLog.AppendText(sb.ToString());
+        async void reservedJobsListBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var job = (Job)reservedJobsListBox.SelectedItem;
+            if (job == null) return;
+            var stats = await consumer.JobStatisticsAsync(job.Id);
+            if (stats == null) return;
+            idTextBox.Text = stats.Id.ToString();
+            tubeTextBox.Text = stats.Tube;
+            ageTextBox.Text = stats.Age.ToString();
+            ttrTextBox.Text = stats.TimeToRun.ToString();
+            stateTextBox.Text = stats.State.ToString();
         }
     }
 }
