@@ -41,5 +41,10 @@ namespace Turbocharged.Beanstalk
                     return;
             }
         }
+
+        public void Cancel()
+        {
+            _tcs.TrySetCanceled();
+        }
     }
 }

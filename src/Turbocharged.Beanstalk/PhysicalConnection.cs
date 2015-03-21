@@ -55,7 +55,7 @@ namespace Turbocharged.Beanstalk
             }
         }
 
-        public async Task SendAsync<T>(Request<T> request)
+        public Task SendAsync<T>(Request<T> request, CancellationToken cancellationToken)
         {
             // TODO: Need a locking mechanism here so requests don't
             //       get inserted into the queue in a different order than
@@ -64,7 +64,7 @@ namespace Turbocharged.Beanstalk
 
             _requestsAwaitingResponse.Add(request);
             var data = request.ToByteArray();
-            await _stream.WriteAsync(data, 0, data.Length);
+            return _stream.WriteAsync(data, 0, data.Length, cancellationToken);
         }
 
         public async Task ReceiveAsync(CancellationToken token)
@@ -88,6 +88,11 @@ namespace Turbocharged.Beanstalk
                     }
                     catch (OperationCanceledException)
                     {
+                        Request request;
+                        while (_requestsAwaitingResponse.TryTake(out request))
+                        {
+                            request.Cancel();
+                        }
                         return;
                     }
 

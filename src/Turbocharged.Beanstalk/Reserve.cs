@@ -76,5 +76,10 @@ namespace Turbocharged.Beanstalk
                 Data = buffer,
             };
         }
+
+        public void Cancel()
+        {
+            _tcs.TrySetCanceled();
+        }
     }
 }

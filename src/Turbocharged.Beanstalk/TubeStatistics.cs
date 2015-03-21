@@ -80,23 +80,6 @@ namespace Turbocharged.Beanstalk
                                 case "pause": result.Pause = TimeSpan.FromSeconds(Convert.ToInt32(pair.Value)); break;
                                 case "pause-time-left": result.PauseTimeLeft = TimeSpan.FromSeconds(Convert.ToInt32(pair.Value)); break;
                             }
-        /*
-         * 
-    name is the tube's name.
-    current-jobs-urgent is the number of ready jobs with priority < 1024 in this tube.
-    current-jobs-ready is the number of jobs in the ready queue in this tube.
-    current-jobs-reserved is the number of jobs reserved by all clients in this tube.
-    current-jobs-delayed is the number of delayed jobs in this tube.
-    current-jobs-buried is the number of buried jobs in this tube.
-    total-jobs is the cumulative count of jobs created in this tube in the current beanstalkd process.
-    current-using is the number of open connections that are currently using this tube.
-    current-waiting is the number of open connections that have issued a reserve command while watching this tube but not yet received a response.
-    current-watching is the number of open connections that are currently watching this tube.
-    pause is the number of seconds the tube has been paused for.
-    cmd-delete is the cumulative number of delete commands for this tube
-    cmd-pause-tube is the cumulative number of pause-tube commands for this tube.
-    pause-time-left is the number of seconds until the tube is un-paused.
-*/
                         }
                         _tcs.SetResult(result);
                         return;
@@ -115,6 +98,11 @@ namespace Turbocharged.Beanstalk
                     _tcs.SetException(new Exception("Unknown failure"));
                     return;
             }
+        }
+
+        public void Cancel()
+        {
+            _tcs.TrySetCanceled();
         }
     }
 }

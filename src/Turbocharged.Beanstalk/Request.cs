@@ -11,6 +11,7 @@ namespace Turbocharged.Beanstalk
     {
         byte[] ToByteArray();
         void Process(string firstLine, NetworkStream stream);
+        void Cancel();
     }
 
     interface Request<T> : Request

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
@@ -189,8 +190,8 @@ namespace Turbocharged.Beanstalk
 
         async Task<T> SendAndGetResult<T>(Request<T> request)
         {
-            await _connection.SendAsync(request).ConfigureAwait(false);
-            return await request.Task; // Let the consumer decide whether to ConfigureAwait or not
+            await _connection.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            return await request.Task.ConfigureAwait(false);
         }
     }
 }

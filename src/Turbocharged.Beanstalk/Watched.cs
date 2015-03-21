@@ -42,5 +42,10 @@ namespace Turbocharged.Beanstalk
 
             _tcs.SetException(new Exception("Unknown use response"));
         }
+
+        public void Cancel()
+        {
+            _tcs.TrySetCanceled();
+        }
     }
 }

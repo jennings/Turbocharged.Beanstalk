@@ -41,5 +41,10 @@ namespace Turbocharged.Beanstalk
                 _tcs.SetException(new Exception("Unknown watch response"));
             }
         }
+
+        public void Cancel()
+        {
+            _tcs.TrySetCanceled();
+        }
     }
 }
