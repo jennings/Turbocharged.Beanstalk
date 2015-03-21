@@ -19,7 +19,7 @@ namespace Turbocharged.Beanstalk
 
         TaskCompletionSource<int> _tcs = new TaskCompletionSource<int>();
 
-        public PutRequest(byte[] job, int priority, TimeSpan delay, TimeSpan timeToRun)
+        public PutRequest(byte[] job, int priority, TimeSpan timeToRun, TimeSpan delay)
         {
             if (job == null)
                 throw new ArgumentNullException("job");

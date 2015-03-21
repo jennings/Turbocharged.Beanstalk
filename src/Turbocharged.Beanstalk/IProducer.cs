@@ -23,14 +23,23 @@ namespace Turbocharged.Beanstalk
         Task<string> UsingAsync();
 
         /// <summary>
+        /// Puts a new job into the currently-used tube with no delay.
+        /// </summary>
+        /// <param name="job">The job data.</param>
+        /// <param name="priority">The priority of the job. Higher-priority jobs will be delivered before lower-priority jobs.</param>
+        /// <param name="timeToRun">The duration for which this job will be reserved.</param>
+        /// <returns>The ID of the inserted job.</returns>
+        Task<int> PutAsync(byte[] job, int priority, TimeSpan timeToRun);
+
+        /// <summary>
         /// Puts a new job into the currently-used tube.
         /// </summary>
         /// <param name="job">The job data.</param>
         /// <param name="priority">The priority of the job. Higher-priority jobs will be delivered before lower-priority jobs.</param>
-        /// <param name="delay">The duration server should wait before allowing the job to be reserved.</param>
         /// <param name="timeToRun">The duration for which this job will be reserved.</param>
+        /// <param name="delay">The duration server should wait before allowing the job to be reserved.</param>
         /// <returns>The ID of the inserted job.</returns>
-        Task<int> PutAsync(byte[] job, int priority, TimeSpan delay, TimeSpan timeToRun);
+        Task<int> PutAsync(byte[] job, int priority, TimeSpan timeToRun, TimeSpan delay);
 
         /// <summary>
         /// Retrives a job without reserving it.
