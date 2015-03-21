@@ -284,7 +284,7 @@ namespace Turbocharged.Beanstalk.Tests
             await ConnectAsync();
 
             int counter = 0;
-            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, async (c, job) =>
+            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, "default", async (c, job) =>
             {
                 counter++;
                 await c.DeleteAsync(job.Id);
@@ -303,9 +303,10 @@ namespace Turbocharged.Beanstalk.Tests
         public async Task ConnectWorker_StopsWhenDisposed()
         {
             await ConnectAsync();
+            var tube = "i-am-a-tube";
 
             int counter = 0;
-            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, async (c, job) =>
+            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, tube, async (c, job) =>
             {
                 counter++;
                 await c.DeleteAsync(job.Id);
@@ -313,6 +314,7 @@ namespace Turbocharged.Beanstalk.Tests
 
             using (await worker)
             {
+                await prod.UseAsync(tube);
                 await prod.PutAsync(new byte[] { }, 1, TenSeconds, ZeroSeconds);
                 await Task.Delay(200);
             }
@@ -324,6 +326,31 @@ namespace Turbocharged.Beanstalk.Tests
             await Task.Delay(200);
 
             Assert.Equal(finalValue, counter);
+        }
+
+        [Fact]
+        public async Task ConnectWorker_WatchesOnlySpecifiedTubes()
+        {
+            await ConnectAsync();
+            await prod.UseAsync("watched");
+            await DrainUsedTube();
+
+            int counter = 0;
+            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, new[] { "watched" }, async (c, job) =>
+            {
+                counter++;
+                await c.DeleteAsync(job.Id);
+            });
+
+            using (await worker)
+            {
+                await prod.PutAsync(new byte[] { }, 1, TenSeconds, ZeroSeconds);
+                await prod.UseAsync("default");
+                await prod.PutAsync(new byte[] { }, 1, TenSeconds, ZeroSeconds);
+                await Task.Delay(200);
+            }
+
+            Assert.Equal(1, counter);
         }
 
         [Fact]

@@ -50,11 +50,34 @@ namespace Turbocharged.Beanstalk
         }
 
         /// <summary>
-        /// Schedulers a worker with a dedicated TCP connection to repeatedly reserve jobs and process them.
+        /// Schedulers a worker with a dedicated TCP connection to repeatedly reserve jobs
+        /// from the specified tube and process them.
         /// </summary>
-        public static async Task<IDisposable> ConnectWorkerAsync(string hostname, int port, WorkerFunc worker)
+        public static Task<IDisposable> ConnectWorkerAsync(string hostname, int port, string tube, WorkerFunc worker)
+        {
+            return ConnectWorkerAsync(hostname, port, new[] { tube }, worker);
+        }
+
+        /// <summary>
+        /// Schedulers a worker with a dedicated TCP connection to repeatedly reserve jobs
+        /// from the specified tubes and process them.
+        /// </summary>
+        public static async Task<IDisposable> ConnectWorkerAsync(string hostname, int port, ICollection<string> tubes, WorkerFunc worker)
         {
             var conn = await BeanstalkConnection.ConnectAsync(hostname, port);
+            try
+            {
+                foreach (var tube in tubes)
+                    await ((IConsumer)conn).WatchAsync(tube);
+                if (!tubes.Contains("default"))
+                    await ((IConsumer)conn).IgnoreAsync("default");
+            }
+            catch
+            {
+                conn.Dispose();
+                throw;
+            }
+
             var cts = new CancellationTokenSource();
             var task = conn.WorkerLoop(worker, cts.Token);
             return Disposable.Create(() =>
