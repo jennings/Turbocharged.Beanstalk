@@ -354,32 +354,30 @@ namespace Turbocharged.Beanstalk.Tests
             Assert.Equal(1, counter);
         }
 
-        [Theory]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        public async Task ConnectWorker_CallsTheWorkerOnTheCurrentSyncContextByDefault(int repeat)
+        [Fact]
+        public async Task ConnectWorker_CallsTheWorkerOnTheCurrentSyncContextByDefault()
         {
             await ConnectAsync();
 
             int counter = 0;
-            SynchronizationContext calledContext = null;
+            int wrongContextCount = 0;
             SynchronizationContext startingContext = SynchronizationContext.Current;
             var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, "default", async (c, job) =>
             {
                 counter++;
-                calledContext = SynchronizationContext.Current;
+                if (startingContext != SynchronizationContext.Current) wrongContextCount++;
                 await c.DeleteAsync(job.Id);
             });
 
             using (await worker)
             {
-                await prod.PutAsync(new byte[] { }, 1, TenSeconds, ZeroSeconds);
+                foreach (var _ in Enumerable.Repeat(0, 10))
+                    await prod.PutAsync(new byte[] { }, 1, TenSeconds, ZeroSeconds);
                 await Task.Delay(100);
             }
 
             Assert.NotEqual(0, counter);
-            Assert.Same(startingContext, calledContext);
+            Assert.Equal(0, wrongContextCount);
         }
 
         [Fact]

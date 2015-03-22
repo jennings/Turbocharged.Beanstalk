@@ -125,7 +125,7 @@ namespace Turbocharged.Beanstalk
                     {
                         // Details: http://blog.stephencleary.com/2013/08/startnew-is-dangerous.html
                         await Task.Factory.StartNew(
-                                async () => await worker(this, job),
+                                () => worker(this, job),
                                 cancellationToken,
                                 TaskCreationOptions.DenyChildAttach,
                                 scheduler)
