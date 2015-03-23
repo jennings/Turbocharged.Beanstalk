@@ -60,7 +60,9 @@ namespace Turbocharged.Beanstalk
         /// <param name="worker">The delegate used to processed reserved jobs.</param>
         public static Task<IDisposable> ConnectWorkerAsync(string hostname, int port, WorkerOptions options, WorkerFunc worker)
         {
-            var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
+            var scheduler = SynchronizationContext.Current == null
+                ? TaskScheduler.Default
+                : TaskScheduler.FromCurrentSynchronizationContext();
             return ConnectWorkerAsync(hostname, port, options, scheduler, worker);
         }
 
@@ -95,13 +97,17 @@ namespace Turbocharged.Beanstalk
             }
 
             var cts = new CancellationTokenSource();
-            conn.WorkerLoop(worker, options, scheduler, cts.Token);
-            return Disposable.Create(() =>
+            var disposable = Disposable.Create(() =>
             {
                 cts.Cancel();
                 cts.Dispose();
                 conn.Dispose();
             });
+#pragma warning disable 4014
+            conn.WorkerLoop(worker, options, scheduler, cts.Token)
+                .ContinueWith(t => disposable.Dispose(), TaskContinuationOptions.OnlyOnFaulted);
+#pragma warning restore 4014
+            return disposable;
         }
 
         async Task WorkerLoop(WorkerFunc worker, WorkerOptions options, TaskScheduler scheduler, CancellationToken cancellationToken)
