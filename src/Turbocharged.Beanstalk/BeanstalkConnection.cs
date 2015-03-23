@@ -51,31 +51,17 @@ namespace Turbocharged.Beanstalk
 
         /// <summary>
         /// Schedules a worker with a dedicated TCP connection to repeatedly reserve jobs
-        /// from the specified tube and process them. The worker will be called back on
-        /// the current SynchronizationContext.
-        /// </summary>
-        /// <param name="hostname">The hostname of the Beanstalk server.</param>
-        /// <param name="port">The port number of the Beanstalk server.</param>
-        /// <param name="tube">The tube to watch.</param>
-        /// <param name="worker">The delegate used to processed reserved jobs.</param>
-        public static Task<IDisposable> ConnectWorkerAsync(string hostname, int port, string tube, WorkerFunc worker)
-        {
-            return ConnectWorkerAsync(hostname, port, new[] { tube }, worker);
-        }
-
-        /// <summary>
-        /// Schedules a worker with a dedicated TCP connection to repeatedly reserve jobs
         /// from the specified tubes and process them. The worker will be called back on
         /// the current SynchronizationContext.
         /// </summary>
         /// <param name="hostname">The hostname of the Beanstalk server.</param>
         /// <param name="port">The port number of the Beanstalk server.</param>
-        /// <param name="tubes">The tubes to watch.</param>
+        /// <param name="options">Options that control the worker's behavior.</param>
         /// <param name="worker">The delegate used to processed reserved jobs.</param>
-        public static Task<IDisposable> ConnectWorkerAsync(string hostname, int port, ICollection<string> tubes, WorkerFunc worker)
+        public static Task<IDisposable> ConnectWorkerAsync(string hostname, int port, WorkerOptions options, WorkerFunc worker)
         {
             var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-            return ConnectWorkerAsync(hostname, port, tubes, scheduler, worker);
+            return ConnectWorkerAsync(hostname, port, options, scheduler, worker);
         }
 
         /// <summary>
@@ -88,15 +74,19 @@ namespace Turbocharged.Beanstalk
         /// <param name="scheduler">The TaskScheduler used when scheduling the worker.</param>
         /// <param name="worker">The delegate used to processed reserved jobs.</param>
         /// <returns>A token which stops the worker when disposed.</returns>
-        public static async Task<IDisposable> ConnectWorkerAsync(string hostname, int port, ICollection<string> tubes, TaskScheduler scheduler, WorkerFunc worker)
+        public static async Task<IDisposable> ConnectWorkerAsync(string hostname, int port, WorkerOptions options, TaskScheduler scheduler, WorkerFunc worker)
         {
             var conn = await BeanstalkConnection.ConnectAsync(hostname, port).ConfigureAwait(false);
             try
             {
-                foreach (var tube in tubes)
-                    await ((IConsumer)conn).WatchAsync(tube).ConfigureAwait(false);
-                if (!tubes.Contains("default"))
-                    await ((IConsumer)conn).IgnoreAsync("default").ConfigureAwait(false);
+                // Just take the default tube if none was given
+                if (options.Tubes.Count > 0)
+                {
+                    foreach (var tube in options.Tubes)
+                        await ((IConsumer)conn).WatchAsync(tube).ConfigureAwait(false);
+                    if (!options.Tubes.Contains("default"))
+                        await ((IConsumer)conn).IgnoreAsync("default").ConfigureAwait(false);
+                }
             }
             catch
             {
@@ -105,7 +95,7 @@ namespace Turbocharged.Beanstalk
             }
 
             var cts = new CancellationTokenSource();
-            var task = conn.WorkerLoop(worker, scheduler, cts.Token);
+            conn.WorkerLoop(worker, options, scheduler, cts.Token);
             return Disposable.Create(() =>
             {
                 cts.Cancel();
@@ -114,7 +104,7 @@ namespace Turbocharged.Beanstalk
             });
         }
 
-        async Task WorkerLoop(WorkerFunc worker, TaskScheduler scheduler, CancellationToken cancellationToken)
+        async Task WorkerLoop(WorkerFunc worker, WorkerOptions options, TaskScheduler scheduler, CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -137,10 +127,30 @@ namespace Turbocharged.Beanstalk
                     {
                         // Carry on outside the catch...
                     }
-                    // TODO: Should have a WorkerFailureOptions to decide how to handle this
                     var cons = this as IConsumer;
-                    var stats = await cons.JobStatisticsAsync(job.Id).ConfigureAwait(false);
-                    await cons.BuryAsync(job.Id, stats.Priority).ConfigureAwait(false);
+                    int priority;
+                    switch (options.FailureBehavior)
+                    {
+                        case WorkerFailureBehavior.Bury:
+                            priority = options.FailurePriority ?? (await cons.JobStatisticsAsync(job.Id).ConfigureAwait(false)).Priority;
+                            await cons.BuryAsync(job.Id, priority).ConfigureAwait(false);
+                            continue;
+
+                        case WorkerFailureBehavior.Release:
+                            priority = options.FailurePriority ?? (await cons.JobStatisticsAsync(job.Id).ConfigureAwait(false)).Priority;
+                            await cons.ReleaseAsync(job.Id, priority, options.FailureReleaseDelay).ConfigureAwait(false);
+                            continue;
+
+                        case WorkerFailureBehavior.Delete:
+                            await cons.DeleteAsync(job.Id).ConfigureAwait(false);
+                            continue;
+
+                        case WorkerFailureBehavior.NoAction:
+                            continue;
+
+                        default:
+                            throw new InvalidOperationException("Unhandled WorkerFailureBehavior '" + options.FailureBehavior.ToString() + "'");
+                    }
                 }
             }
         }

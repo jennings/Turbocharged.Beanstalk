@@ -285,7 +285,7 @@ namespace Turbocharged.Beanstalk.Tests
             await ConnectAsync();
 
             int counter = 0;
-            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, "default", async (c, job) =>
+            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, new WorkerOptions(), async (c, job) =>
             {
                 counter++;
                 await c.DeleteAsync(job.Id);
@@ -307,7 +307,8 @@ namespace Turbocharged.Beanstalk.Tests
             var tube = "i-am-a-tube";
 
             int counter = 0;
-            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, tube, async (c, job) =>
+            var options = new WorkerOptions { Tubes = { tube } };
+            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, options, async (c, job) =>
             {
                 counter++;
                 await c.DeleteAsync(job.Id);
@@ -337,7 +338,8 @@ namespace Turbocharged.Beanstalk.Tests
             await DrainUsedTube();
 
             int counter = 0;
-            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, new[] { "watched" }, async (c, job) =>
+            var options = new WorkerOptions { Tubes = { "watched" } };
+            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, options, async (c, job) =>
             {
                 counter++;
                 await c.DeleteAsync(job.Id);
@@ -362,7 +364,7 @@ namespace Turbocharged.Beanstalk.Tests
             int counter = 0;
             int wrongContextCount = 0;
             SynchronizationContext startingContext = SynchronizationContext.Current;
-            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, "default", async (c, job) =>
+            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, new WorkerOptions(), async (c, job) =>
             {
                 counter++;
                 if (startingContext != SynchronizationContext.Current) wrongContextCount++;
@@ -378,6 +380,48 @@ namespace Turbocharged.Beanstalk.Tests
 
             Assert.NotEqual(0, counter);
             Assert.Equal(0, wrongContextCount);
+        }
+
+        [Theory]
+        [InlineData(WorkerFailureBehavior.Delete)]
+        [InlineData(WorkerFailureBehavior.Bury)]
+        [InlineData(WorkerFailureBehavior.Release)]
+        [InlineData(WorkerFailureBehavior.NoAction)]
+        public async Task ConnectWorker_ThrownExceptionFollowsSpecifiedBehavior(WorkerFailureBehavior behavior)
+        {
+            await ConnectAsync();
+            var tube = "test-failure-behaviors";
+            await prod.UseAsync(tube);
+            await DrainUsedTube();
+
+            var options = new WorkerOptions
+            {
+                Tubes = { tube },
+                FailureBehavior = behavior,
+                FailurePriority = 1,
+                FailureReleaseDelay = TimeSpan.FromSeconds(10),
+            };
+            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, options, (c, job) =>
+            {
+                throw new Exception();
+            });
+
+            JobStatistics stats;
+            using (await worker)
+            {
+                var id = await prod.PutAsync(new byte[] { }, 1, TenSeconds, ZeroSeconds);
+                await Task.Delay(100);
+                stats = await prod.JobStatisticsAsync(id);
+            }
+
+            switch (behavior)
+            {
+                case WorkerFailureBehavior.Delete: Assert.Null(stats); return;
+                case WorkerFailureBehavior.Bury: Assert.Equal(stats.State, JobState.Buried); return;
+                case WorkerFailureBehavior.Release: Assert.Equal(stats.State, JobState.Delayed); return;
+                case WorkerFailureBehavior.NoAction: Assert.Equal(stats.State, JobState.Reserved); return;
+                default: throw new Exception("Untested behavior");
+            }
         }
 
         [Fact]

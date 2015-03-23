@@ -69,6 +69,7 @@
     <Compile Include="Put.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="System\StringExtensions.cs" />
+    <Compile Include="WorkerOptions.cs" />
     <Compile Include="YamlHelper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -29,8 +29,8 @@ namespace SampleApp
         async void connectButton_Click(object sender, EventArgs e)
         {
             connectButton.Enabled = false;
-            var tube = watchTextBox.Text;
-            subscription = await BeanstalkConnection.ConnectWorkerAsync(_hostname, _port, tube, async (conn, job) =>
+            var options = new WorkerOptions { Tubes = { watchTextBox.Text.Trim() } };
+            subscription = await BeanstalkConnection.ConnectWorkerAsync(_hostname, _port, options, async (conn, job) =>
             {
                 jobs.Add(job);
                 await conn.DeleteAsync(job.Id);
