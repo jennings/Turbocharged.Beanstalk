@@ -76,18 +76,15 @@ namespace Turbocharged.Beanstalk
             {
                 var firstLineMaxLength = 255;
                 byte[] buffer = new byte[firstLineMaxLength];
-                int pos = -1; // Our current position in the buffer
-                while (true)
+                int pos = 0; // Our current position in the buffer
+
+                // So this is kind of dumb. But since I can't use a
+                // StreamReader (can't get raw bytes out of it)
+                // or a BinaryReader (no async methods) and I don't
+                // want to deal with buffering myself, I'm reading
+                // one character at a time so I don't read past the CRLF
+                while (await _stream.ReadAsync(buffer, pos, 1, token).ConfigureAwait(false) > 0)
                 {
-                    pos++;
-
-                    // So this is kind of dumb. But since I can't use a
-                    // StreamReader (can't get raw bytes out of it)
-                    // or a BinaryReader (no async methods) and I don't
-                    // want to deal with buffering myself, I'm reading
-                    // one character at a time so I don't read past the CRLF
-                    await _stream.ReadAsync(buffer, pos, 1, token).ConfigureAwait(false);
-
                     // We're done if the last two characters were CR LF
                     if (pos > 0 && buffer[pos - 1] == 13 && buffer[pos] == 10)
                     {
@@ -102,17 +99,20 @@ namespace Turbocharged.Beanstalk
                         {
                             // How rude
                         }
-                        pos = -1; // Overwrite the buffer on the next go-round
+                        pos = 0; // Overwrite the buffer on the next go-round
+                        continue;
                     }
                     else if (pos == firstLineMaxLength)
                     {
                         // Oops
                         break;
                     }
+                    pos++;
                 }
             }
             catch (Exception)
             {
+                var a = 1;
             }
 
             // No way to really recover from exiting this loop
@@ -122,6 +122,8 @@ namespace Turbocharged.Beanstalk
 
         void Drain()
         {
+            // TODO: Probably make BeanstalkConnection establish a new connection
+            //       and migrate all un-popped requests to the new connection
             Request request;
             while (_requestsAwaitingResponse.TryTake(out request))
             {
