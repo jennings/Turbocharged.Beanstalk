@@ -217,6 +217,18 @@ namespace Turbocharged.Beanstalk
             return SendAndGetResult(request);
         }
 
+        Task<int> IProducer.KickAsync(int count)
+        {
+            var request = new KickRequest(count);
+            return SendAndGetResult(request);
+        }
+
+        Task<bool> IProducer.KickJobAsync(int id)
+        {
+            var request = new KickJobRequest(id);
+            return SendAndGetResult(request);
+        }
+
         #endregion
 
         #region Consumer
@@ -290,6 +302,11 @@ namespace Turbocharged.Beanstalk
         {
             var request = new TouchRequest(id);
             return SendAndGetResult(request);
+        }
+
+        Task<bool> IWorker.KickJobAsync(int id)
+        {
+            return ((IProducer)this).KickJobAsync(id);
         }
 
         #endregion

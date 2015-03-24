@@ -58,5 +58,19 @@ namespace Turbocharged.Beanstalk
         /// </summary>
         /// <returns>A job, or null if no jobs are in the specified state.</returns>
         Task<Job> PeekAsync(JobState state);
+
+        /// <summary>
+        /// Kicks jobs into the Ready queue from the Buried queue, or from the Delayed queue if the Buried queue is empty.
+        /// </summary>
+        /// <param name="count">The maximum number of jobs to kick.</param>
+        /// <returns>The number of jobs actually kicked.</returns>
+        Task<int> KickAsync(int count);
+
+        /// <summary>
+        /// Kicks a job into the Ready queue from the Delayed or Buried queues.
+        /// </summary>
+        /// <param name="id">The job ID.</param>
+        /// <returns>True if the job was kicked, or false if it was not found or not in a kickable state.</returns>
+        Task<bool> KickJobAsync(int id);
     }
 }

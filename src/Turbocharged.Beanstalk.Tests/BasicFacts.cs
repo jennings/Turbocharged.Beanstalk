@@ -469,5 +469,27 @@ namespace Turbocharged.Beanstalk.Tests
             Assert.False(string.IsNullOrWhiteSpace(stats.Id));
             Assert.True(stats.CurrentConnections > 0);
         }
+
+        [Fact]
+        public async Task KickWorks()
+        {
+            await ConnectAsync();
+            await prod.UseAsync("never-reserve-from-this-tube");
+            var id = await prod.PutAsync(new byte[] { }, 1, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(60));
+            Assert.Equal(JobState.Delayed, (await prod.JobStatisticsAsync(id)).State);
+            await prod.KickAsync(int.MaxValue); // Buried
+            await prod.KickAsync(int.MaxValue); // Delayed
+            Assert.Equal(JobState.Ready, (await prod.JobStatisticsAsync(id)).State);
+        }
+
+        [Fact]
+        public async Task KickJobWorks()
+        {
+            await ConnectAsync();
+            var id = await prod.PutAsync(new byte[] { }, 1, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(60));
+            Assert.Equal(JobState.Delayed, (await prod.JobStatisticsAsync(id)).State);
+            await prod.KickJobAsync(id);
+            Assert.Equal(JobState.Ready, (await prod.JobStatisticsAsync(id)).State);
+        }
     }
 }
