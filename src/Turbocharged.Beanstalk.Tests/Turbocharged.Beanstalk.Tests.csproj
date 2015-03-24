@@ -54,7 +54,7 @@
   <ItemGroup>
     <Compile Include="AssemblyExtensions.cs" />
     <Compile Include="MiscellaneousFacts.cs" />
-    <Compile Include="BasicFacts.cs" />
+    <Compile Include="ConnectionFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

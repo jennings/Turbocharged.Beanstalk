@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Turbocharged.Beanstalk.Tests
 {
-    public class BasicFacts : IDisposable
+    public class ConnectionFacts : IDisposable
     {
         IConsumer cons;
         IProducer prod;
@@ -20,7 +20,7 @@ namespace Turbocharged.Beanstalk.Tests
         static TimeSpan ZeroSeconds = TimeSpan.Zero;
         static TimeSpan TenSeconds = TimeSpan.FromSeconds(10);
 
-        public BasicFacts()
+        public ConnectionFacts()
         {
             hostname = Environment.GetEnvironmentVariable("BEANSTALK_HOSTNAME") ?? ConfigurationManager.AppSettings["Hostname"];
             port = Convert.ToInt32(Environment.GetEnvironmentVariable("BEANSTALK_PORT") ?? ConfigurationManager.AppSettings["Port"]);
