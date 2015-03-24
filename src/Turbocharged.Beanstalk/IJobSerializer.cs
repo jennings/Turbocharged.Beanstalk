@@ -22,7 +22,7 @@ namespace Turbocharged.Beanstalk
         T Deserialize<T>(byte[] buffer);
     }
 
-    class NotProvidedSerializer : IJobSerializer
+    class NoSerializerProvidedSerializer : IJobSerializer
     {
         public byte[] Serialize<T>(T job)
         {

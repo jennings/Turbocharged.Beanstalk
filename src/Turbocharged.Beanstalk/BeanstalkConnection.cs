@@ -84,6 +84,32 @@ namespace Turbocharged.Beanstalk
         /// <param name="options">The worker options.</param>
         /// <param name="worker">The delegate used to processed reserved jobs.</param>
         /// <returns>A token which stops the worker when disposed.</returns>
+        public static Task<IDisposable> ConnectWorkerAsync<T>(ConnectionConfiguration configuration, WorkerOptions options, Func<IWorker, Job<T>, Task> worker)
+        {
+            if (configuration.JobSerializer is NoSerializerProvidedSerializer)
+                throw new ArgumentException("configuration", "Must set an IJobSerializer to use typed workers");
+            WorkerFunc workerFunc = (w, untypedJob) =>
+            {
+                var obj = configuration.JobSerializer.Deserialize<T>(untypedJob.Data);
+                var typedJob = new Job<T>
+                {
+                    Id = untypedJob.Id,
+                    Data = untypedJob.Data,
+                    Object = obj,
+                };
+                return worker(w, typedJob);
+            };
+            return ConnectWorkerAsync(configuration, options, workerFunc);
+        }
+
+        /// <summary>
+        /// Schedules a worker with a dedicated TCP connection to repeatedly reserve jobs
+        /// from the specified tubes and process them.
+        /// </summary>
+        /// <param name="configuration">The configuration for the Beanstalk connection.</param>
+        /// <param name="options">The worker options.</param>
+        /// <param name="worker">The delegate used to processed reserved jobs.</param>
+        /// <returns>A token which stops the worker when disposed.</returns>
         public static async Task<IDisposable> ConnectWorkerAsync(ConnectionConfiguration configuration, WorkerOptions options, WorkerFunc worker)
         {
             // Must capture the context before the first await

@@ -14,7 +14,7 @@ namespace Turbocharged.Beanstalk
 
         public ConnectionConfiguration()
         {
-            JobSerializer = new NotProvidedSerializer();
+            JobSerializer = new NoSerializerProvidedSerializer();
         }
 
         public static ConnectionConfiguration Parse(string connectionString)

@@ -19,6 +19,7 @@ namespace Turbocharged.Beanstalk.Tests
         int port;
         string connectionString;
         ConnectionConfiguration config;
+        WorkerOptions options;
 
         static TimeSpan ZeroSeconds = TimeSpan.Zero;
         static TimeSpan TenSeconds = TimeSpan.FromSeconds(10);
@@ -28,6 +29,7 @@ namespace Turbocharged.Beanstalk.Tests
             hostname = Environment.GetEnvironmentVariable("BEANSTALK_HOSTNAME") ?? ConfigurationManager.AppSettings["Hostname"];
             port = Convert.ToInt32(Environment.GetEnvironmentVariable("BEANSTALK_PORT") ?? ConfigurationManager.AppSettings["Port"]);
             connectionString = string.Format("{0}:{1}", hostname, port);
+            options = new WorkerOptions { Tubes = { "jobjects" } };
             config = new ConnectionConfiguration
             {
                 Hostname = hostname,
@@ -67,7 +69,7 @@ namespace Turbocharged.Beanstalk.Tests
         }
 
         [Fact]
-        public async Task CanSerializeAJob()
+        public async Task CanSerializeAndDeserializeAJob()
         {
             await ConnectAsync();
             var obj = new Jobject { Int = 34, String = "Hello!" };
@@ -77,6 +79,39 @@ namespace Turbocharged.Beanstalk.Tests
             Assert.Equal(id, job.Id);
             Assert.Equal(obj.Int, job.Object.Int);
             Assert.Equal(obj.String, job.Object.String);
+        }
+
+        [Fact]
+        public void ThrowsWhenCreatingATypedWorkerWithoutASerializer()
+        {
+            var config = new ConnectionConfiguration { Hostname = hostname, Port = port };
+            // Throw should be synchronous
+            Assert.Throws<ArgumentException>(() =>
+            {
+                BeanstalkConnection.ConnectWorkerAsync<Jobject>(config, options, async (w, j) => await Task.Yield());
+            });
+        }
+
+        [Fact]
+        public async Task TypedWorkersWork()
+        {
+            int counter = 0;
+            var worker = BeanstalkConnection.ConnectWorkerAsync<Jobject>(config, options, async (w, j) =>
+            {
+                counter++;
+                await w.DeleteAsync(j.Id);
+            });
+
+            using (await worker)
+            {
+                await ConnectAsync();
+                await prod.PutAsync<Jobject>(new Jobject { }, 1, TimeSpan.FromSeconds(30));
+                await prod.PutAsync<Jobject>(new Jobject { }, 1, TimeSpan.FromSeconds(30));
+                await prod.PutAsync<Jobject>(new Jobject { }, 1, TimeSpan.FromSeconds(30));
+                await Task.Delay(200);
+            }
+
+            Assert.InRange(counter, 3, int.MaxValue);
         }
     }
 
