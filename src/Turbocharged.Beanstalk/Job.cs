@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    public sealed class Job
+    public class Job
     {
         public int Id { get; internal set; }
         public byte[] Data { get; internal set; }

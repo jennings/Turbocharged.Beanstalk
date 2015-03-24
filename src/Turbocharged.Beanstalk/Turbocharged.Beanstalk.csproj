@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IJobSerializer.cs" />
     <Compile Include="ConnectionConfiguration.cs" />
     <Compile Include="IServer.cs" />
     <Compile Include="IWorker.cs" />
@@ -47,6 +48,7 @@
     <Compile Include="KickJob.cs" />
     <Compile Include="ListTubes.cs" />
     <Compile Include="Kick.cs" />
+    <Compile Include="SerializationExtensions.cs" />
     <Compile Include="Touch.cs" />
     <Compile Include="Bury.cs" />
     <Compile Include="Release.cs" />

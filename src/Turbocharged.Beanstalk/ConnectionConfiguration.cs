@@ -10,6 +10,12 @@ namespace Turbocharged.Beanstalk
     {
         public string Hostname { get; set; }
         public int Port { get; set; }
+        public IJobSerializer JobSerializer { get; set; }
+
+        public ConnectionConfiguration()
+        {
+            JobSerializer = new NotProvidedSerializer();
+        }
 
         public static ConnectionConfiguration Parse(string connectionString)
         {
