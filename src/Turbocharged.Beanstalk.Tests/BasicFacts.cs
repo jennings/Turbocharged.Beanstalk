@@ -173,19 +173,19 @@ namespace Turbocharged.Beanstalk.Tests
         {
             await ConnectAsync();
             await prod.UseAsync("touch-test");
-            await prod.PutAsync(new byte[] { 12 }, 1, TenSeconds, ZeroSeconds);
-
-            // Now re-prioritize it
             await cons.WatchAsync("touch-test");
             await cons.IgnoreAsync("default");
+
+            // Reserve a job and wait a few seconds
+            await prod.PutAsync(new byte[] { 12 }, 1, TenSeconds, ZeroSeconds);
             var job = await cons.ReserveAsync(TimeSpan.FromSeconds(0));
+            await Task.Delay(2000);
             var stats1 = await cons.JobStatisticsAsync(job.Id);
-            // Uncomment when fixed
-            // System.Threading.Thread.Sleep(2000);
+
+            // Touch it and make sure the TimeLeft increased
             await cons.TouchAsync(job.Id);
             var stats2 = await cons.JobStatisticsAsync(job.Id);
-            // Commented out because I don't understand why this fails
-            // Assert.True(stats1.TimeLeft < stats2.TimeLeft);
+            Assert.InRange(stats2.TimeLeft, stats1.TimeLeft, TenSeconds);
         }
 
         [Fact]
