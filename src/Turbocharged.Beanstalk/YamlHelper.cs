@@ -9,6 +9,23 @@ namespace Turbocharged.Beanstalk
 {
     static class YamlHelper
     {
+        public static List<string> ParseList(byte[] buffer)
+        {
+            var result = new List<string>();
+            using (var sr = new StreamReader(new MemoryStream(buffer), Encoding.ASCII))
+            {
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (line == "---") continue;
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    var value = line.Substring(2);
+                    result.Add(value);
+                }
+            }
+            return result;
+        }
+
         public static Dictionary<string, string> ParseDictionary(byte[] buffer)
         {
             var result = new Dictionary<string, string>();

@@ -208,6 +208,31 @@ namespace Turbocharged.Beanstalk.Tests
         }
 
         [Fact]
+        public async Task ListTubeUsedWorks()
+        {
+            await ConnectAsync();
+            var tube = "hello-there";
+            await prod.UseAsync(tube);
+            var used = await prod.ListTubeUsedAsync();
+            Assert.Equal(tube, used);
+        }
+
+        [Fact]
+        public async Task ListTubesWatchedWorks()
+        {
+            await ConnectAsync();
+            var tubes = new[] { "tube1", "tube2", "tube3" };
+            foreach (var tube in tubes)
+                await cons.WatchAsync(tube);
+            await cons.IgnoreAsync("default");
+            var watched = await cons.ListTubesWatchedAsync();
+
+            Assert.Equal(tubes.Length, watched.Count);
+            foreach (var tube in watched)
+                Assert.Contains(tube, tubes);
+        }
+
+        [Fact]
         public async Task WatchAndIgnoreWorksCorrectly()
         {
             await ConnectAsync();

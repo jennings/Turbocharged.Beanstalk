@@ -23,16 +23,13 @@ namespace Turbocharged.Beanstalk
             try
             {
                 var parts = firstLine.Split(' ');
-                if (parts.Length == 2 && parts[0] == "WATCHING")
+                if (parts.Length == 2 && parts[0] == "OK")
                 {
                     var bytes = Convert.ToInt32(parts[1]) + 2; // Get the last CRLF
                     var buffer = new byte[bytes];
                     stream.Read(buffer, 0, bytes);
-
-                    var lines = buffer.ToASCIIString()
-                        .Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
-                        .ToList();
-                    _tcs.SetResult(lines);
+                    var tubes = YamlHelper.ParseList(buffer);
+                    _tcs.SetResult(tubes);
                     return;
                 }
             }
@@ -40,7 +37,7 @@ namespace Turbocharged.Beanstalk
             {
             }
 
-            _tcs.SetException(new Exception("Unknown use response"));
+            _tcs.SetException(new Exception("Unknown list-tubes-watched response"));
         }
 
         public void Cancel()
