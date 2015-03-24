@@ -491,5 +491,23 @@ namespace Turbocharged.Beanstalk.Tests
             await prod.KickJobAsync(id);
             Assert.Equal(JobState.Ready, (await prod.JobStatisticsAsync(id)).State);
         }
+
+        [Fact]
+        public async Task PauseTubeWorks()
+        {
+            await ConnectAsync();
+            var tube = "pause";
+            await prod.UseAsync(tube);
+            await cons.WatchAsync(tube);
+            await cons.IgnoreAsync("default");
+
+            var id = await prod.PutAsync(new byte[] { }, 1, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+            var paused = await cons.PauseTubeAsync(tube, TimeSpan.FromSeconds(5));
+            Assert.True(paused);
+
+            Assert.True(await cons.KickJobAsync(id));
+            await Assert.ThrowsAsync<TimeoutException>(() => cons.ReserveAsync(TimeSpan.FromSeconds(0)));
+            Assert.Equal(JobState.Ready, (await cons.JobStatisticsAsync(id)).State);
+        }
     }
 }

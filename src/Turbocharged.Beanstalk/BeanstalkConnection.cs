@@ -319,6 +319,12 @@ namespace Turbocharged.Beanstalk
             return SendAndGetResult(request);
         }
 
+        Task<bool> IServer.PauseTubeAsync(string tube, TimeSpan duration)
+        {
+            var request = new PauseTubeRequest(tube, duration);
+            return SendAndGetResult(request);
+        }
+
         Task<JobStatistics> IServer.JobStatisticsAsync(int id)
         {
             var request = new JobStatisticsRequest(id);

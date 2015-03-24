@@ -17,6 +17,11 @@ namespace Turbocharged.Beanstalk
         Task<List<string>> ListTubesAsync();
 
         /// <summary>
+        /// Delays new jobs from being reserved from a tube for the specified duration.
+        /// </summary>
+        Task<bool> PauseTubeAsync(string tube, TimeSpan duration);
+
+        /// <summary>
         /// Retrieves statistics about the connected server.
         /// </summary>
         Task<Statistics> ServerStatisticsAsync();
