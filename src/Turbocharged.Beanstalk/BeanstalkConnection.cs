@@ -183,9 +183,9 @@ namespace Turbocharged.Beanstalk
             return SendAndGetResult(request);
         }
 
-        Task<string> IProducer.UsingAsync()
+        Task<string> IProducer.ListTubeUsedAsync()
         {
-            var request = new UsingRequest();
+            var request = new ListTubeUsedRequest();
             return SendAndGetResult(request);
         }
 
@@ -257,9 +257,9 @@ namespace Turbocharged.Beanstalk
             return SendAndGetResult(request);
         }
 
-        Task<List<string>> IWorker.WatchedAsync()
+        Task<List<string>> IWorker.ListTubesWatchedAsync()
         {
-            var request = new WatchedRequest();
+            var request = new ListTubesWatchedRequest();
             return SendAndGetResult(request);
         }
 

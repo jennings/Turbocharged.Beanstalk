@@ -49,7 +49,7 @@ namespace Turbocharged.Beanstalk
         /// <summary>
         /// Returns a list of tubes currently being watched.
         /// </summary>
-        Task<List<string>> WatchedAsync();
+        Task<List<string>> ListTubesWatchedAsync();
 
         /// <summary>
         /// Retrives a job without reserving it.

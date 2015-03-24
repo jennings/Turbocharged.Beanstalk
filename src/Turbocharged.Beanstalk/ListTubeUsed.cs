@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Turbocharged.Beanstalk
 {
-    class UsingRequest : Request<string>
+    class ListTubeUsedRequest : Request<string>
     {
         public Task<string> Task { get { return _tcs.Task; } }
 

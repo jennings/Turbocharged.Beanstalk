@@ -20,7 +20,7 @@ namespace Turbocharged.Beanstalk
         /// <summary>
         /// Retrieves the name of the currently-used tube.
         /// </summary>
-        Task<string> UsingAsync();
+        Task<string> ListTubeUsedAsync();
 
         /// <summary>
         /// Puts a new job into the currently-used tube with no delay.
