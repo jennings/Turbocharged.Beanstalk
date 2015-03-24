@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConnectionConfiguration.cs" />
     <Compile Include="IServer.cs" />
     <Compile Include="IWorker.cs" />
     <Compile Include="PauseTube.cs" />

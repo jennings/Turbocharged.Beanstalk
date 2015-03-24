@@ -33,9 +33,10 @@ namespace SampleApp
 
             var hostname = hostnameTextBox.Text;
             var port = Convert.ToInt32(portTextBox.Text);
+            var connectionString = string.Format("{0}:{1}", hostname, port);
 
-            var c = BeanstalkConnection.ConnectConsumerAsync(hostname, port);
-            var p = BeanstalkConnection.ConnectProducerAsync(hostname, port);
+            var c = BeanstalkConnection.ConnectConsumerAsync(connectionString);
+            var p = BeanstalkConnection.ConnectProducerAsync(connectionString);
             await Task.WhenAll(c, p);
             consumer = c.Result;
             producer = p.Result;
@@ -96,7 +97,8 @@ namespace SampleApp
 
         private void spawnWorkerButton_Click(object sender, EventArgs e)
         {
-            var form = new WorkerForm(hostnameTextBox.Text, Convert.ToInt32(portTextBox.Text));
+            var connectionString = string.Format("{0}:{1}", hostnameTextBox.Text, portTextBox.Text);
+            var form = new WorkerForm(connectionString);
             form.Show();
         }
     }

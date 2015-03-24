@@ -13,52 +13,78 @@ namespace Turbocharged.Beanstalk
     /// </summary>
     public sealed class BeanstalkConnection : IProducer, IConsumer, IServer, IDisposable
     {
-        string _hostname;
-        int _port;
+        public ConnectionConfiguration Configuration { get; private set; }
         PhysicalConnection _connection;
 
         #region Connection
 
         // Private, so we can make the object creation async
-        BeanstalkConnection(string hostname, int port)
+        BeanstalkConnection(ConnectionConfiguration config)
         {
-            _hostname = hostname;
-            _port = port;
+            this.Configuration = config;
         }
 
-        static async Task<BeanstalkConnection> ConnectAsync(string hostname, int port)
+        static async Task<BeanstalkConnection> ConnectAsync(ConnectionConfiguration config)
         {
-            var connection = new BeanstalkConnection(hostname, port);
-            connection._connection = await PhysicalConnection.ConnectAsync(hostname, port).ConfigureAwait(false); // Yo dawg
+            var connection = new BeanstalkConnection(config);
+            connection._connection = await PhysicalConnection.ConnectAsync(config.Hostname, config.Port).ConfigureAwait(false); // Yo dawg
             return connection;
         }
 
         /// <summary>
         /// Creates a consumer with a dedicated TCP connection to a Beanstalk server.
         /// </summary>
-        public static async Task<IConsumer> ConnectConsumerAsync(string hostname, int port)
+        public static async Task<IConsumer> ConnectConsumerAsync(string connectionString)
         {
-            return await ConnectAsync(hostname, port).ConfigureAwait(false);
+            return await ConnectAsync(ConnectionConfiguration.Parse(connectionString)).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Creates a producer with a dedicated TCP connection to a Beanstalk server.
         /// </summary>
-        public static async Task<IProducer> ConnectProducerAsync(string hostname, int port)
+        public static async Task<IProducer> ConnectProducerAsync(string connectionString)
         {
-            return await ConnectAsync(hostname, port).ConfigureAwait(false);
+            return await ConnectAsync(ConnectionConfiguration.Parse(connectionString)).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Creates a consumer with a dedicated TCP connection to a Beanstalk server.
+        /// </summary>
+        public static async Task<IConsumer> ConnectConsumerAsync(ConnectionConfiguration configuration)
+        {
+            return await ConnectAsync(configuration).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Creates a producer with a dedicated TCP connection to a Beanstalk server.
+        /// </summary>
+        public static async Task<IProducer> ConnectProducerAsync(ConnectionConfiguration configuration)
+        {
+            return await ConnectAsync(configuration).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Schedules a worker with a dedicated TCP connection to repeatedly reserve jobs
         /// from the specified tubes and process them.
         /// </summary>
-        /// <param name="hostname">The hostname of the Beanstalk server.</param>
-        /// <param name="port">The port number of the Beanstalk server.</param>
-        /// <param name="tubes">The tubes to watch.</param>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="options">The worker options.</param>
         /// <param name="worker">The delegate used to processed reserved jobs.</param>
         /// <returns>A token which stops the worker when disposed.</returns>
-        public static async Task<IDisposable> ConnectWorkerAsync(string hostname, int port, WorkerOptions options, WorkerFunc worker)
+        public static Task<IDisposable> ConnectWorkerAsync(string connectionString, WorkerOptions options, WorkerFunc worker)
+        {
+            return ConnectWorkerAsync(ConnectionConfiguration.Parse(connectionString), options, worker);
+        }
+
+        /// <summary>
+        /// Schedules a worker with a dedicated TCP connection to repeatedly reserve jobs
+        /// from the specified tubes and process them.
+        /// </summary>
+        /// <param name="configuration">The configuration for the Beanstalk connection.</param>
+        /// <param name="options">The worker options.</param>
+        /// <param name="worker">The delegate used to processed reserved jobs.</param>
+        /// <returns>A token which stops the worker when disposed.</returns>
+        public static async Task<IDisposable> ConnectWorkerAsync(ConnectionConfiguration configuration, WorkerOptions options, WorkerFunc worker)
         {
             // Must capture the context before the first await
             if (options.TaskScheduler == null)
@@ -66,7 +92,7 @@ namespace Turbocharged.Beanstalk
                     ? TaskScheduler.Default
                     : TaskScheduler.FromCurrentSynchronizationContext();
 
-            var conn = await BeanstalkConnection.ConnectAsync(hostname, port).ConfigureAwait(false);
+            var conn = await BeanstalkConnection.ConnectAsync(configuration).ConfigureAwait(false);
             try
             {
                 // Just take the default tube if none was given

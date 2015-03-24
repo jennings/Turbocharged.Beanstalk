@@ -16,6 +16,7 @@ namespace Turbocharged.Beanstalk.Tests
         IProducer prod;
         string hostname;
         int port;
+        string connectionString;
 
         static TimeSpan ZeroSeconds = TimeSpan.Zero;
         static TimeSpan TenSeconds = TimeSpan.FromSeconds(10);
@@ -24,6 +25,7 @@ namespace Turbocharged.Beanstalk.Tests
         {
             hostname = Environment.GetEnvironmentVariable("BEANSTALK_HOSTNAME") ?? ConfigurationManager.AppSettings["Hostname"];
             port = Convert.ToInt32(Environment.GetEnvironmentVariable("BEANSTALK_PORT") ?? ConfigurationManager.AppSettings["Port"]);
+            connectionString = string.Format("{0}:{1}", hostname, port);
         }
 
         public void Dispose()
@@ -34,8 +36,8 @@ namespace Turbocharged.Beanstalk.Tests
 
         async Task ConnectAsync()
         {
-            cons = await BeanstalkConnection.ConnectConsumerAsync(hostname, port);
-            prod = await BeanstalkConnection.ConnectProducerAsync(hostname, port);
+            cons = await BeanstalkConnection.ConnectConsumerAsync(connectionString);
+            prod = await BeanstalkConnection.ConnectProducerAsync(connectionString);
         }
 
         async Task DrainUsedTube()
@@ -322,7 +324,7 @@ namespace Turbocharged.Beanstalk.Tests
             await ConnectAsync();
 
             int counter = 0;
-            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, new WorkerOptions(), async (c, job) =>
+            var worker = BeanstalkConnection.ConnectWorkerAsync(connectionString, new WorkerOptions(), async (c, job) =>
             {
                 counter++;
                 await c.DeleteAsync(job.Id);
@@ -345,7 +347,7 @@ namespace Turbocharged.Beanstalk.Tests
 
             int counter = 0;
             var options = new WorkerOptions { Tubes = { tube } };
-            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, options, async (c, job) =>
+            var worker = BeanstalkConnection.ConnectWorkerAsync(connectionString, options, async (c, job) =>
             {
                 counter++;
                 await c.DeleteAsync(job.Id);
@@ -376,7 +378,7 @@ namespace Turbocharged.Beanstalk.Tests
 
             int counter = 0;
             var options = new WorkerOptions { Tubes = { "watched" } };
-            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, options, async (c, job) =>
+            var worker = BeanstalkConnection.ConnectWorkerAsync(connectionString, options, async (c, job) =>
             {
                 counter++;
                 await c.DeleteAsync(job.Id);
@@ -402,7 +404,7 @@ namespace Turbocharged.Beanstalk.Tests
             int wrongContextCount = 0;
             SynchronizationContext startingContext = SynchronizationContext.Current;
             var options = new WorkerOptions { };
-            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, options, async (c, job) =>
+            var worker = BeanstalkConnection.ConnectWorkerAsync(connectionString, options, async (c, job) =>
             {
                 counter++;
                 if (startingContext != SynchronizationContext.Current) wrongContextCount++;
@@ -439,7 +441,7 @@ namespace Turbocharged.Beanstalk.Tests
                 FailurePriority = 1,
                 FailureReleaseDelay = TimeSpan.FromSeconds(10),
             };
-            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, options, (c, job) =>
+            var worker = BeanstalkConnection.ConnectWorkerAsync(connectionString, options, (c, job) =>
             {
                 throw new Exception();
             });

@@ -13,16 +13,14 @@ namespace SampleApp
 {
     public partial class WorkerForm : Form
     {
-        string _hostname;
-        int _port;
+        string _connectionString;
         IDisposable subscription;
         BindingList<Job> jobs = new BindingList<Job>();
 
-        public WorkerForm(string hostname, int port)
+        public WorkerForm(string connectionString)
         {
             InitializeComponent();
-            _hostname = hostname;
-            _port = port;
+            _connectionString = connectionString;
             jobsListBox.DataSource = jobs;
         }
 
@@ -30,7 +28,7 @@ namespace SampleApp
         {
             connectButton.Enabled = false;
             var options = new WorkerOptions { Tubes = { watchTextBox.Text.Trim() } };
-            subscription = await BeanstalkConnection.ConnectWorkerAsync(_hostname, _port, options, async (conn, job) =>
+            subscription = await BeanstalkConnection.ConnectWorkerAsync(_connectionString, options, async (conn, job) =>
             {
                 jobs.Add(job);
                 await conn.DeleteAsync(job.Id);
