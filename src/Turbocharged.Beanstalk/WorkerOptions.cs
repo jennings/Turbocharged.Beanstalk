@@ -9,6 +9,12 @@ namespace Turbocharged.Beanstalk
     public class WorkerOptions
     {
         /// <summary>
+        /// The TaskScheduler used when calling the worker delegate.
+        /// If not set, the current SynchronizationContext will be captured and used.
+        /// </summary>
+        public TaskScheduler TaskScheduler { get; set; }
+
+        /// <summary>
         /// The tubes this worker watches. If you do not set any, "default" will be watched automatically.
         /// </summary>
         public List<string> Tubes { get; set; }

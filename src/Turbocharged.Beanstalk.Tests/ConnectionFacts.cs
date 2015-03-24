@@ -401,7 +401,8 @@ namespace Turbocharged.Beanstalk.Tests
             int counter = 0;
             int wrongContextCount = 0;
             SynchronizationContext startingContext = SynchronizationContext.Current;
-            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, new WorkerOptions(), async (c, job) =>
+            var options = new WorkerOptions { };
+            var worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, options, async (c, job) =>
             {
                 counter++;
                 if (startingContext != SynchronizationContext.Current) wrongContextCount++;

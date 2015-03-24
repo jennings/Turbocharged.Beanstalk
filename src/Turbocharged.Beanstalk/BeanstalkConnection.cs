@@ -51,33 +51,21 @@ namespace Turbocharged.Beanstalk
 
         /// <summary>
         /// Schedules a worker with a dedicated TCP connection to repeatedly reserve jobs
-        /// from the specified tubes and process them. The worker will be called back on
-        /// the current SynchronizationContext.
-        /// </summary>
-        /// <param name="hostname">The hostname of the Beanstalk server.</param>
-        /// <param name="port">The port number of the Beanstalk server.</param>
-        /// <param name="options">Options that control the worker's behavior.</param>
-        /// <param name="worker">The delegate used to processed reserved jobs.</param>
-        public static Task<IDisposable> ConnectWorkerAsync(string hostname, int port, WorkerOptions options, WorkerFunc worker)
-        {
-            var scheduler = SynchronizationContext.Current == null
-                ? TaskScheduler.Default
-                : TaskScheduler.FromCurrentSynchronizationContext();
-            return ConnectWorkerAsync(hostname, port, options, scheduler, worker);
-        }
-
-        /// <summary>
-        /// Schedules a worker with a dedicated TCP connection to repeatedly reserve jobs
         /// from the specified tubes and process them.
         /// </summary>
         /// <param name="hostname">The hostname of the Beanstalk server.</param>
         /// <param name="port">The port number of the Beanstalk server.</param>
         /// <param name="tubes">The tubes to watch.</param>
-        /// <param name="scheduler">The TaskScheduler used when scheduling the worker.</param>
         /// <param name="worker">The delegate used to processed reserved jobs.</param>
         /// <returns>A token which stops the worker when disposed.</returns>
-        public static async Task<IDisposable> ConnectWorkerAsync(string hostname, int port, WorkerOptions options, TaskScheduler scheduler, WorkerFunc worker)
+        public static async Task<IDisposable> ConnectWorkerAsync(string hostname, int port, WorkerOptions options, WorkerFunc worker)
         {
+            // Must capture the context before the first await
+            if (options.TaskScheduler == null)
+                options.TaskScheduler = SynchronizationContext.Current == null
+                    ? TaskScheduler.Default
+                    : TaskScheduler.FromCurrentSynchronizationContext();
+
             var conn = await BeanstalkConnection.ConnectAsync(hostname, port).ConfigureAwait(false);
             try
             {
@@ -104,13 +92,13 @@ namespace Turbocharged.Beanstalk
                 conn.Dispose();
             });
 #pragma warning disable 4014
-            conn.WorkerLoop(worker, options, scheduler, cts.Token)
+            conn.WorkerLoop(worker, options, cts.Token)
                 .ContinueWith(t => disposable.Dispose(), TaskContinuationOptions.OnlyOnFaulted);
 #pragma warning restore 4014
             return disposable;
         }
 
-        async Task WorkerLoop(WorkerFunc worker, WorkerOptions options, TaskScheduler scheduler, CancellationToken cancellationToken)
+        async Task WorkerLoop(WorkerFunc worker, WorkerOptions options, CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -124,7 +112,7 @@ namespace Turbocharged.Beanstalk
                                 () => worker(this, job),
                                 cancellationToken,
                                 TaskCreationOptions.DenyChildAttach,
-                                scheduler)
+                                options.TaskScheduler)
                             .Unwrap()
                             .ConfigureAwait(false);
                         continue;
