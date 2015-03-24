@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="IServer.cs" />
     <Compile Include="IWorker.cs" />
+    <Compile Include="ListTubes.cs" />
     <Compile Include="Touch.cs" />
     <Compile Include="Bury.cs" />
     <Compile Include="Release.cs" />

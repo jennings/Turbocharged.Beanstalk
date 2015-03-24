@@ -233,6 +233,18 @@ namespace Turbocharged.Beanstalk.Tests
         }
 
         [Fact]
+        public async Task ListTubesWorks()
+        {
+            await ConnectAsync();
+            await prod.PutAsync(new byte[] { }, 1, TimeSpan.FromSeconds(30));
+            await prod.UseAsync("another-tube");
+            await prod.PutAsync(new byte[] { }, 1, TimeSpan.FromSeconds(30));
+            var tubes = await prod.ListTubesAsync();
+            Assert.Contains("default", tubes);
+            Assert.Contains("another-tube", tubes);
+        }
+
+        [Fact]
         public async Task WatchAndIgnoreWorksCorrectly()
         {
             await ConnectAsync();

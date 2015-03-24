@@ -12,6 +12,11 @@ namespace Turbocharged.Beanstalk
     public interface IServer
     {
         /// <summary>
+        /// Retrieves the list of tubes on the server.
+        /// </summary>
+        Task<List<string>> ListTubesAsync();
+
+        /// <summary>
         /// Retrieves statistics about the connected server.
         /// </summary>
         Task<Statistics> ServerStatisticsAsync();

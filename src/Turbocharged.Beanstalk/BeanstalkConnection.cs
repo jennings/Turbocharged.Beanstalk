@@ -296,6 +296,12 @@ namespace Turbocharged.Beanstalk
 
         #region Server
 
+        Task<List<string>> IServer.ListTubesAsync()
+        {
+            var request = new ListTubesRequest();
+            return SendAndGetResult(request);
+        }
+
         Task<JobStatistics> IServer.JobStatisticsAsync(int id)
         {
             var request = new JobStatisticsRequest(id);
