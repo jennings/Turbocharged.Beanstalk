@@ -86,8 +86,6 @@ namespace Turbocharged.Beanstalk
         /// <returns>A token which stops the worker when disposed.</returns>
         public static Task<IDisposable> ConnectWorkerAsync<T>(ConnectionConfiguration configuration, WorkerOptions options, Func<IWorker, Job<T>, Task> worker)
         {
-            if (configuration.JobSerializer is NoSerializerProvidedSerializer)
-                throw new ArgumentException("configuration", "Must set an IJobSerializer to use typed workers");
             WorkerFunc workerFunc = (w, untypedJob) =>
             {
                 var obj = configuration.JobSerializer.Deserialize<T>(untypedJob.Data);

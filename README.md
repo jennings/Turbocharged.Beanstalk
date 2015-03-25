@@ -25,9 +25,12 @@ Do the normal thing:
     // A producer exposes methods used for inserting jobs
     // Most producer methods are affected by UseAsync(tube)
 
-    IProducer producer = await BeanstalkConnection.ConnectProducerAsync(hostname, port);
+    IProducer producer = await BeanstalkConnection.ConnectProducerAsync("localhost:11300");
     await producer.UseAsync("mytube");
     await producer.PutAsync(job, 5, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+
+    // You can also put custom objects and they'll be serialized to JSON
+    await producer.PutAsync<MyObject>(obj, 5, TimeSpan.Zero, TimeSpan.FromSeconds(30));
 
     producer.Dispose();
 
@@ -36,9 +39,12 @@ Do the normal thing:
     // A consumer exposes methods for reserving and deleting jobs
     // Most consumer methods are affected by WatchAsync(tube)
 
-    IConsumer consumer = await BeanstalkConnection.ConnectConsumerAsync(hostname, port);
+    IConsumer consumer = await BeanstalkConnection.ConnectConsumerAsync("localhost:11300");
     await consumer.WatchAsync("mytube");
-    var job = await consumer.ReserveAsync();
+    Job job = await consumer.ReserveAsync();
+
+    // You can also deserialize if you know what type you're expecting
+    // Job<MyObject> = await consumer.ReserveAsync<MyObject>();
 
     // ...work work work...
 
@@ -62,8 +68,15 @@ Do the normal thing:
 
     IDisposable worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, workerFunc);
 
-    // When you're ready to stop the worker
+    // Or, typed:
+
+    Func<IWorker, Job<T>, Task> typedWorkerFunc = ...;
+
+    IDisposable typedWorker = BeanstalkConnection.ConnectWorkerAsync<MyObject>(hostname, port, typedWorkerFunc);
+
+    // When you're ready to stop the workers
     worker.Dispose();
+    typedWorker.Dispose();
 
 A worker task is a dedicated BeanstalkConnection. You provide a delegate with
 signature `Func<IWorker, Job, Task>` to process jobs and delete/bury them when

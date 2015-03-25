@@ -21,17 +21,4 @@ namespace Turbocharged.Beanstalk
         /// </summary>
         T Deserialize<T>(byte[] buffer);
     }
-
-    class NoSerializerProvidedSerializer : IJobSerializer
-    {
-        public byte[] Serialize<T>(T job)
-        {
-            throw new InvalidOperationException("An IJobSerializer must be provided when establishing a BeanstalkConnection");
-        }
-
-        public T Deserialize<T>(byte[] buffer)
-        {
-            throw new InvalidOperationException("An IJobSerializer must be provided when establishing a BeanstalkConnection");
-        }
-    }
 }

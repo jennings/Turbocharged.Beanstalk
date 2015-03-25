@@ -10,6 +10,9 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>A Beanstalk client filled with async happiness.</description>
         <tags>beanstalk queue</tags>
+        <dependencies>
+            <dependency id="Newtonsoft.Json" version="6.0.1" />
+        </dependencies>
     </metadata>
     <files>
         <file src="src/Turbocharged.Beanstalk/bin/Release/Turbocharged.Beanstalk.dll" target="lib/net45" />

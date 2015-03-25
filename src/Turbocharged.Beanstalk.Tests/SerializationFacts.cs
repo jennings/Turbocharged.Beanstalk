@@ -34,7 +34,6 @@ namespace Turbocharged.Beanstalk.Tests
             {
                 Hostname = hostname,
                 Port = port,
-                JobSerializer = new JsonNetSerializer(),
             };
         }
 
@@ -61,14 +60,6 @@ namespace Turbocharged.Beanstalk.Tests
         }
 
         [Fact]
-        public async Task ThrowsWhenAJobSerializerIsNotProvided()
-        {
-            var prod = await BeanstalkConnection.ConnectProducerAsync(connectionString);
-            var obj = new Jobject { };
-            await Assert.ThrowsAsync<InvalidOperationException>(() => prod.PutAsync<Jobject>(obj, 1, TenSeconds));
-        }
-
-        [Fact]
         public async Task CanSerializeAndDeserializeAJob()
         {
             await ConnectAsync();
@@ -79,17 +70,6 @@ namespace Turbocharged.Beanstalk.Tests
             Assert.Equal(id, job.Id);
             Assert.Equal(obj.Int, job.Object.Int);
             Assert.Equal(obj.String, job.Object.String);
-        }
-
-        [Fact]
-        public void ThrowsWhenCreatingATypedWorkerWithoutASerializer()
-        {
-            var config = new ConnectionConfiguration { Hostname = hostname, Port = port };
-            // Throw should be synchronous
-            Assert.Throws<ArgumentException>(() =>
-            {
-                BeanstalkConnection.ConnectWorkerAsync<Jobject>(config, options, async (w, j) => await Task.Yield());
-            });
         }
 
         [Fact]
@@ -113,6 +93,20 @@ namespace Turbocharged.Beanstalk.Tests
 
             Assert.InRange(counter, 3, int.MaxValue);
         }
+
+        [Fact]
+        public async Task UsesCustomSerializer()
+        {
+            var serializer = new CountingSerializer();
+            config.JobSerializer = serializer;
+            var prod = await BeanstalkConnection.ConnectProducerAsync(config);
+            await prod.UseAsync("jobjects");
+            var id = await prod.PutAsync<Jobject>(new Jobject(), 1, TimeSpan.FromSeconds(10));
+            await prod.PeekAsync<Jobject>(id);
+
+            Assert.Equal(1, serializer.SerializeCount);
+            Assert.Equal(1, serializer.DeserializeCount);
+        }
     }
 
     class Jobject
@@ -121,20 +115,23 @@ namespace Turbocharged.Beanstalk.Tests
         public string String { get; set; }
     }
 
-    class JsonNetSerializer : IJobSerializer
+    class CountingSerializer : IJobSerializer
     {
+        public int SerializeCount = 0;
+        public int DeserializeCount = 0;
+
         public byte[] Serialize<T>(T job)
         {
-            var str = JsonConvert.SerializeObject(job);
-            var bytes = Encoding.UTF8.GetBytes(str);
-            return bytes;
+            SerializeCount++;
+            var str = JsonConvert.SerializeObject(job, Formatting.None);
+            return Encoding.UTF8.GetBytes(str);
         }
 
         public T Deserialize<T>(byte[] buffer)
         {
+            DeserializeCount++;
             var str = Encoding.UTF8.GetString(buffer);
-            var obj = JsonConvert.DeserializeObject<T>(str);
-            return obj;
+            return JsonConvert.DeserializeObject<T>(str);
         }
     }
 }
