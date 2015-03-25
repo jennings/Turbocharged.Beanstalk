@@ -31,7 +31,7 @@ namespace SampleApp
             subscription = await BeanstalkConnection.ConnectWorkerAsync(_connectionString, options, async (conn, job) =>
             {
                 jobs.Add(job);
-                await conn.DeleteAsync(job.Id);
+                await conn.DeleteAsync();
                 await Task.Delay(1000);
             });
             disconnectButton.Enabled = true;

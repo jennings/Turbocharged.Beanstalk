@@ -148,7 +148,7 @@ namespace Turbocharged.Beanstalk
             return disposable;
         }
 
-        async Task WorkerLoop(WorkerFunc worker, WorkerOptions options, CancellationToken cancellationToken)
+        async Task WorkerLoop(WorkerFunc workerFunc, WorkerOptions options, CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -157,20 +157,29 @@ namespace Turbocharged.Beanstalk
                 {
                     try
                     {
+                        var worker = new Worker(job, this);
+
                         // Details: http://blog.stephencleary.com/2013/08/startnew-is-dangerous.html
                         await Task.Factory.StartNew(
-                                () => worker(this, job),
+                                () => workerFunc(worker, job),
                                 cancellationToken,
                                 TaskCreationOptions.DenyChildAttach,
                                 options.TaskScheduler)
                             .Unwrap()
                             .ConfigureAwait(false);
-                        continue;
+
+                        if (worker.Completed)
+                            continue;
+
+                        // else, fall through to the failure handling
                     }
                     catch (Exception)
                     {
                         // Carry on outside the catch...
                     }
+
+                    // Failure handling
+                    // Either the workerFunc threw or didn't delete/release/bury the job
                     var cons = this as IConsumer;
                     int priority;
                     switch (options.FailureBehavior)
@@ -395,6 +404,43 @@ namespace Turbocharged.Beanstalk
             if (conn == null) throw new ObjectDisposedException("_connection");
             await conn.SendAsync(request, cancellationToken).ConfigureAwait(false);
             return await request.Task.ConfigureAwait(false);
+        }
+
+        class Worker : IWorker
+        {
+            int _id;
+            IConsumer _consumer;
+
+            public bool Completed { get; private set; }
+
+            public Worker(Job job, IConsumer consumer)
+            {
+                _id = job.Id;
+                _consumer = consumer;
+            }
+
+            public Task<bool> DeleteAsync()
+            {
+                Completed = true;
+                return _consumer.DeleteAsync(_id);
+            }
+
+            public Task<bool> ReleaseAsync(int priority, TimeSpan delay)
+            {
+                Completed = true;
+                return _consumer.ReleaseAsync(_id, priority, delay);
+            }
+
+            public Task<bool> BuryAsync(int priority)
+            {
+                Completed = true;
+                return _consumer.BuryAsync(_id, priority);
+            }
+
+            public Task<bool> TouchAsync()
+            {
+                return _consumer.TouchAsync(_id);
+            }
         }
     }
 }

@@ -79,7 +79,7 @@ namespace Turbocharged.Beanstalk.Tests
             var worker = BeanstalkConnection.ConnectWorkerAsync<Jobject>(config, options, async (w, j) =>
             {
                 counter++;
-                await w.DeleteAsync(j.Id);
+                await w.DeleteAsync();
             });
 
             using (await worker)

@@ -327,7 +327,7 @@ namespace Turbocharged.Beanstalk.Tests
             var worker = BeanstalkConnection.ConnectWorkerAsync(connectionString, new WorkerOptions(), async (c, job) =>
             {
                 counter++;
-                await c.DeleteAsync(job.Id);
+                await c.DeleteAsync();
             });
 
             using (await worker)
@@ -350,7 +350,7 @@ namespace Turbocharged.Beanstalk.Tests
             var worker = BeanstalkConnection.ConnectWorkerAsync(connectionString, options, async (c, job) =>
             {
                 counter++;
-                await c.DeleteAsync(job.Id);
+                await c.DeleteAsync();
             });
 
             using (await worker)
@@ -381,7 +381,7 @@ namespace Turbocharged.Beanstalk.Tests
             var worker = BeanstalkConnection.ConnectWorkerAsync(connectionString, options, async (c, job) =>
             {
                 counter++;
-                await c.DeleteAsync(job.Id);
+                await c.DeleteAsync();
             });
 
             using (await worker)
@@ -408,7 +408,7 @@ namespace Turbocharged.Beanstalk.Tests
             {
                 counter++;
                 if (startingContext != SynchronizationContext.Current) wrongContextCount++;
-                await c.DeleteAsync(job.Id);
+                await c.DeleteAsync();
             });
 
             using (await worker)
@@ -462,6 +462,31 @@ namespace Turbocharged.Beanstalk.Tests
                 case WorkerFailureBehavior.NoAction: Assert.Equal(stats.State, JobState.Reserved); return;
                 default: throw new Exception("Untested behavior");
             }
+        }
+
+        [Fact]
+        public async Task ConnectWorker_FollowsFailureOptionsIfTheWorkerFuncDoesntTakeAction()
+        {
+            await ConnectAsync();
+            await prod.UseAsync("watched");
+            await DrainUsedTube();
+
+            int receivedJobId = 0;
+            var options = new WorkerOptions { Tubes = { "watched" }, FailureBehavior = WorkerFailureBehavior.Bury };
+            var worker = BeanstalkConnection.ConnectWorkerAsync(connectionString, options, async (c, job) =>
+            {
+                if (receivedJobId == 0) receivedJobId = job.Id;
+                await Task.Delay(0); // Don't call any IWorker methods
+            });
+
+            using (await worker)
+            {
+                await prod.PutAsync(new byte[] { }, 1, TenSeconds, ZeroSeconds);
+                await Task.Delay(100);
+            }
+
+            var stat = await prod.JobStatisticsAsync(receivedJobId);
+            Assert.Equal(JobState.Buried, stat.State);
         }
 
         [Fact]
