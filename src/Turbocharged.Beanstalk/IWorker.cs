@@ -10,7 +10,7 @@ namespace Turbocharged.Beanstalk
     /// Provides methods useful for inspecting jobs and working with jobs that have
     /// already been reserved.
     /// </summary>
-    public interface IWorker : IServer
+    public interface IWorker
     {
         /// <summary>
         /// Deletes the specified job.
@@ -29,39 +29,8 @@ namespace Turbocharged.Beanstalk
         Task<bool> BuryAsync(int id, int priority);
 
         /// <summary>
-        /// Deletes the specified job.
+        /// Requests that the TimeLeft for the reserved job be reset to the TimeToRun.
         /// </summary>
         Task<bool> TouchAsync(int id);
-
-        /// <summary>
-        /// Begins watching a tube.
-        /// </summary>
-        /// <returns>The number of tubes currently being watched.</returns>
-        Task<int> WatchAsync(string tube);
-
-        /// <summary>
-        /// Ignores jobs from a tube.
-        /// </summary>
-        /// <returns>The number of tubes currently being watched.</returns>
-        /// <exception cref="System.InvalidOperationException">Thrown when attempting to ignore the only watched tube.</exception>
-        Task<int> IgnoreAsync(string tube);
-
-        /// <summary>
-        /// Returns a list of tubes currently being watched.
-        /// </summary>
-        Task<List<string>> ListTubesWatchedAsync();
-
-        /// <summary>
-        /// Retrives a job without reserving it.
-        /// </summary>
-        /// <returns>A job, or null if the job was not found.</returns>
-        Task<Job> PeekAsync(int id);
-
-        /// <summary>
-        /// Kicks a job into the Ready queue from the Delayed or Buried queues.
-        /// </summary>
-        /// <param name="id">The job ID.</param>
-        /// <returns>True if the job was kicked, or false if it was not found or not in a kickable state.</returns>
-        Task<bool> KickJobAsync(int id);
     }
 }

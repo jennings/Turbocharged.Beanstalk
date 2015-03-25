@@ -283,66 +283,66 @@ namespace Turbocharged.Beanstalk
             return SendAndGetResult(request);
         }
 
-        #endregion
-
-        #region Worker
-
-        // This is purposefully private and not part of the IConsumer
-        // interface, it exists for worker loops
+        /// <summary>
+        /// This is purposefully not part of any interface, it exists for worker loops.
+        /// Cancelling the token will end up desynchronizing the reactor
+        /// inside the PhysicalConnection so this should only be cancelled
+        /// if the connection is being torn down anyway.
+        /// </summary>
         Task<Job> ReserveAsync(CancellationToken cancellationToken)
         {
             var request = new ReserveRequest();
             return SendAndGetResult(request, cancellationToken);
         }
 
-        Task<int> IWorker.WatchAsync(string tube)
+        Task<int> IConsumer.WatchAsync(string tube)
         {
             var request = new WatchRequest(tube);
             return SendAndGetResult(request);
         }
 
-        Task<int> IWorker.IgnoreAsync(string tube)
+        Task<int> IConsumer.IgnoreAsync(string tube)
         {
             var request = new IgnoreRequest(tube);
             return SendAndGetResult(request);
         }
 
-        Task<List<string>> IWorker.ListTubesWatchedAsync()
+        Task<List<string>> IConsumer.ListTubesWatchedAsync()
         {
             var request = new ListTubesWatchedRequest();
             return SendAndGetResult(request);
         }
 
-        Task<Job> IWorker.PeekAsync(int id)
+        Task<Job> IConsumer.PeekAsync(int id)
         {
             return ((IProducer)this).PeekAsync(id);
         }
 
-        Task<bool> IWorker.DeleteAsync(int id)
+        Task<bool> IConsumer.DeleteAsync(int id)
         {
             var request = new DeleteRequest(id);
             return SendAndGetResult(request);
         }
 
-        Task<bool> IWorker.ReleaseAsync(int id, int priority, TimeSpan delay)
+        Task<bool> IConsumer.ReleaseAsync(int id, int priority, TimeSpan delay)
         {
             var request = new ReleaseRequest(id, priority, (int)delay.TotalSeconds);
             return SendAndGetResult(request);
         }
 
-        Task<bool> IWorker.BuryAsync(int id, int priority)
+        Task<bool> IConsumer.BuryAsync(int id, int priority)
         {
             var request = new BuryRequest(id, priority);
             return SendAndGetResult(request);
         }
 
-        Task<bool> IWorker.TouchAsync(int id)
+        Task<bool> IConsumer.TouchAsync(int id)
         {
             var request = new TouchRequest(id);
             return SendAndGetResult(request);
         }
 
-        Task<bool> IWorker.KickJobAsync(int id)
+        Task<bool> IConsumer.KickJobAsync(int id)
         {
             return ((IProducer)this).KickJobAsync(id);
         }
