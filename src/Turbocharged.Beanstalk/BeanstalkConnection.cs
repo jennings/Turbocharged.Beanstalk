@@ -141,10 +141,21 @@ namespace Turbocharged.Beanstalk
                 cts.Dispose();
                 conn.Dispose();
             });
+
 #pragma warning disable 4014
-            conn.WorkerLoop(worker, options, cts.Token)
-                .ContinueWith(t => disposable.Dispose(), TaskContinuationOptions.OnlyOnFaulted);
+            Task[] workerLoops = new Task[options.NumberOfWorkers];
+            for (var i = 0; i < options.NumberOfWorkers; i++)
+                workerLoops[i] = conn.WorkerLoop(worker, options, cts.Token);
+
+            // Ensure we handle any thrown exceptions
+            Task.WhenAll(workerLoops).ContinueWith(t =>
+            {
+                disposable.Dispose();
+                if (t.Exception != null)
+                    t.Exception.Handle(ex => true);
+            }, TaskContinuationOptions.OnlyOnFaulted);
 #pragma warning restore 4014
+
             return disposable;
         }
 
@@ -153,57 +164,57 @@ namespace Turbocharged.Beanstalk
             while (!cancellationToken.IsCancellationRequested)
             {
                 var job = await ReserveAsync(cancellationToken).ConfigureAwait(false);
-                if (job != null)
+                if (job == null)
+                    continue; // DEADLINE_SOON
+
+                try
                 {
-                    try
-                    {
-                        var worker = new Worker(job, this);
+                    var worker = new Worker(job, this);
 
-                        // Details: http://blog.stephencleary.com/2013/08/startnew-is-dangerous.html
-                        await Task.Factory.StartNew(
-                                () => workerFunc(worker, job),
-                                cancellationToken,
-                                TaskCreationOptions.DenyChildAttach,
-                                options.TaskScheduler)
-                            .Unwrap()
-                            .ConfigureAwait(false);
+                    // Details: http://blog.stephencleary.com/2013/08/startnew-is-dangerous.html
+                    await Task.Factory.StartNew(
+                            () => workerFunc(worker, job),
+                            cancellationToken,
+                            TaskCreationOptions.DenyChildAttach,
+                            options.TaskScheduler)
+                        .Unwrap()
+                        .ConfigureAwait(false);
 
-                        if (worker.Completed)
-                            continue;
+                    if (worker.Completed)
+                        continue;
 
-                        // else, fall through to the failure handling
-                    }
-                    catch (Exception)
-                    {
-                        // Carry on outside the catch...
-                    }
+                    // else, fall through to the failure handling
+                }
+                catch (Exception)
+                {
+                    // Carry on outside the catch...
+                }
 
-                    // Failure handling
-                    // Either the workerFunc threw or didn't delete/release/bury the job
-                    var cons = this as IConsumer;
-                    int priority;
-                    switch (options.FailureBehavior)
-                    {
-                        case WorkerFailureBehavior.Bury:
-                            priority = options.FailurePriority ?? (await cons.JobStatisticsAsync(job.Id).ConfigureAwait(false)).Priority;
-                            await cons.BuryAsync(job.Id, priority).ConfigureAwait(false);
-                            continue;
+                // Failure handling
+                // Either the workerFunc threw or didn't delete/release/bury the job
+                var cons = this as IConsumer;
+                int priority;
+                switch (options.FailureBehavior)
+                {
+                    case WorkerFailureBehavior.Bury:
+                        priority = options.FailurePriority ?? (await cons.JobStatisticsAsync(job.Id).ConfigureAwait(false)).Priority;
+                        await cons.BuryAsync(job.Id, priority).ConfigureAwait(false);
+                        continue;
 
-                        case WorkerFailureBehavior.Release:
-                            priority = options.FailurePriority ?? (await cons.JobStatisticsAsync(job.Id).ConfigureAwait(false)).Priority;
-                            await cons.ReleaseAsync(job.Id, priority, options.FailureReleaseDelay).ConfigureAwait(false);
-                            continue;
+                    case WorkerFailureBehavior.Release:
+                        priority = options.FailurePriority ?? (await cons.JobStatisticsAsync(job.Id).ConfigureAwait(false)).Priority;
+                        await cons.ReleaseAsync(job.Id, priority, options.FailureReleaseDelay).ConfigureAwait(false);
+                        continue;
 
-                        case WorkerFailureBehavior.Delete:
-                            await cons.DeleteAsync(job.Id).ConfigureAwait(false);
-                            continue;
+                    case WorkerFailureBehavior.Delete:
+                        await cons.DeleteAsync(job.Id).ConfigureAwait(false);
+                        continue;
 
-                        case WorkerFailureBehavior.NoAction:
-                            continue;
+                    case WorkerFailureBehavior.NoAction:
+                        continue;
 
-                        default:
-                            throw new InvalidOperationException("Unhandled WorkerFailureBehavior '" + options.FailureBehavior.ToString() + "'");
-                    }
+                    default:
+                        throw new InvalidOperationException("Unhandled WorkerFailureBehavior '" + options.FailureBehavior.ToString() + "'");
                 }
             }
         }

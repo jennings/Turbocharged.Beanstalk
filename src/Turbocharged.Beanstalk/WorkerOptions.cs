@@ -20,6 +20,11 @@ namespace Turbocharged.Beanstalk
         public List<string> Tubes { get; set; }
 
         /// <summary>
+        /// The number of workers to spawn. All workers listen on a single TCP connection.
+        /// </summary>
+        public int NumberOfWorkers { get; set; }
+
+        /// <summary>
         /// The action that should be taken if a worker function
         /// throws an unhandled exception.
         /// </summary>
@@ -40,6 +45,7 @@ namespace Turbocharged.Beanstalk
         public WorkerOptions()
         {
             Tubes = new List<string>();
+            NumberOfWorkers = 1;
             FailureBehavior = WorkerFailureBehavior.Bury;
             FailurePriority = null;
             FailureReleaseDelay = TimeSpan.Zero;

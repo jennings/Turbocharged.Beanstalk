@@ -340,6 +340,39 @@ namespace Turbocharged.Beanstalk.Tests
         }
 
         [Fact]
+        public async Task ConnectWorker_CreatesTheSpecifiedNumberOfWorkers()
+        {
+            var tube = "5-second-tasks";
+
+            await ConnectAsync();
+            await prod.UseAsync(tube);
+            await Task.WhenAll(
+                prod.PutAsync(new byte[] { }, 1, TenSeconds),
+                prod.PutAsync(new byte[] { }, 1, TenSeconds),
+                prod.PutAsync(new byte[] { }, 1, TenSeconds));
+
+            var reserved = new List<Job>();
+            var options = new WorkerOptions { Tubes = { tube }, NumberOfWorkers = 3 };
+            var worker = BeanstalkConnection.ConnectWorkerAsync(connectionString, options, async (c, job) =>
+            {
+                reserved.Add(job);
+                await Task.Delay(5000);
+                await c.DeleteAsync();
+            });
+
+            var stats = new List<JobStatistics>();
+            using (await worker)
+            {
+                await Task.Delay(200);
+                foreach (var job in reserved)
+                    stats.Add(await prod.JobStatisticsAsync(job.Id));
+            }
+
+            Assert.Equal(3, stats.Count);
+            Assert.All(stats, stat => Assert.Equal(JobState.Reserved, stat.State));
+        }
+
+        [Fact]
         public async Task ConnectWorker_StopsWhenDisposed()
         {
             await ConnectAsync();
@@ -457,9 +490,9 @@ namespace Turbocharged.Beanstalk.Tests
             switch (behavior)
             {
                 case WorkerFailureBehavior.Delete: Assert.Null(stats); return;
-                case WorkerFailureBehavior.Bury: Assert.Equal(stats.State, JobState.Buried); return;
-                case WorkerFailureBehavior.Release: Assert.Equal(stats.State, JobState.Delayed); return;
-                case WorkerFailureBehavior.NoAction: Assert.Equal(stats.State, JobState.Reserved); return;
+                case WorkerFailureBehavior.Bury: Assert.Equal(JobState.Buried, stats.State); return;
+                case WorkerFailureBehavior.Release: Assert.Equal(JobState.Delayed, stats.State); return;
+                case WorkerFailureBehavior.NoAction: Assert.Equal(JobState.Reserved, stats.State); return;
                 default: throw new Exception("Untested behavior");
             }
         }
