@@ -79,6 +79,17 @@ namespace Turbocharged.Beanstalk.Tests
         }
 
         [Fact]
+        public async Task TubeNamesAreValidated()
+        {
+            await ConnectAsync();
+            Assert.Throws<ArgumentOutOfRangeException>(() => { cons.WatchAsync("no spaces allowed"); });
+            Assert.Throws<ArgumentOutOfRangeException>(() => { cons.WatchAsync("-cant-start-with-hyphen"); });
+            Assert.Throws<ArgumentOutOfRangeException>(() => { cons.WatchAsync("ampersands&arent-okay"); });
+            var watching = await cons.WatchAsync("this-name-is-valid-123-($_-.;/+)-");
+            Assert.Equal(2, watching);
+        }
+
+        [Fact]
         public async Task CanReserveAJob()
         {
             await ConnectAsync();
