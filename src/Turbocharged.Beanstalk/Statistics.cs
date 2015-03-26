@@ -98,11 +98,13 @@ namespace Turbocharged.Beanstalk
                     }
                     catch (Exception ex)
                     {
+                        Trace.Error("StatsticsRequest threw {0}: {1}", ex.GetType().Name, ex.Message);
                         _tcs.SetException(ex);
                         return;
                     }
 
                 default:
+                    Trace.Error("Unknown stats response: {0}", firstLine);
                     _tcs.SetException(new Exception(parts[0]));
                     return;
             }

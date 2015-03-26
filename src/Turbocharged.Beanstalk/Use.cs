@@ -35,6 +35,7 @@ namespace Turbocharged.Beanstalk
             }
             else
             {
+                Trace.Error("Unknown use response: {0}", firstLine);
                 _tcs.SetException(new Exception("Unknown use response"));
             }
         }

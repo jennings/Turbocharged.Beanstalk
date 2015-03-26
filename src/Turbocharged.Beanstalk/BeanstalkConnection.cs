@@ -13,7 +13,11 @@ namespace Turbocharged.Beanstalk
     /// </summary>
     public sealed class BeanstalkConnection : IProducer, IConsumer, IServer, IDisposable
     {
+        /// <summary>
+        /// The configuration used to create this connection.
+        /// </summary>
         public ConnectionConfiguration Configuration { get; private set; }
+
         PhysicalConnection _connection;
 
         #region Connection
@@ -27,6 +31,7 @@ namespace Turbocharged.Beanstalk
         static async Task<BeanstalkConnection> ConnectAsync(ConnectionConfiguration config)
         {
             var connection = new BeanstalkConnection(config);
+            Trace.Info("Connecting BeanstalkConnection to '{0}'", config);
             connection._connection = await PhysicalConnection.ConnectAsync(config.Hostname, config.Port).ConfigureAwait(false); // Yo dawg
             return connection;
         }
@@ -227,6 +232,7 @@ namespace Turbocharged.Beanstalk
             var c = Interlocked.Exchange(ref _connection, null);
             if (c != null)
             {
+                Trace.Info("Disposing BeanstalkConnection");
                 c.Dispose();
             }
         }

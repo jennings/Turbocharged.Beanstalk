@@ -26,5 +26,13 @@ namespace Turbocharged.Beanstalk
                 Port = Convert.ToInt32(parts[1].Trim()),
             };
         }
+
+        public override string ToString()
+        {
+            return "{0}:{1}; JobSerializer={2}".FormatWith(
+                Hostname,
+                Port,
+                JobSerializer == null ? "null" : JobSerializer.GetType().Name);
+        }
     }
 }

@@ -277,7 +277,7 @@
             // 
             // spawnWorkerButton
             // 
-            this.spawnWorkerButton.Location = new System.Drawing.Point(863, 15);
+            this.spawnWorkerButton.Location = new System.Drawing.Point(863, 12);
             this.spawnWorkerButton.Name = "spawnWorkerButton";
             this.spawnWorkerButton.Size = new System.Drawing.Size(148, 30);
             this.spawnWorkerButton.TabIndex = 8;

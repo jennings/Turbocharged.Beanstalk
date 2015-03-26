@@ -68,6 +68,7 @@ namespace Turbocharged.Beanstalk
 
                 case "EXPECTED_CRLF":
                 default:
+                    Trace.Error("Unknown put response: {0}", firstLine);
                     _tcs.SetException(new InvalidOperationException("Unknown response: " + parts[0]));
                     return;
             }

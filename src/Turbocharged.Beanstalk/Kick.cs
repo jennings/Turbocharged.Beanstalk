@@ -38,6 +38,7 @@ namespace Turbocharged.Beanstalk
             catch
             {
             }
+            Trace.Error("Unknown kick response: {0}", firstLine);
             _tcs.SetException(new Exception("Unknown response from kick: '{0}'".FormatWith(firstLine)));
         }
 

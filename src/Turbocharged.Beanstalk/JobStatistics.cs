@@ -78,6 +78,7 @@ namespace Turbocharged.Beanstalk
 
                 default:
                     _tcs.SetException(new Exception("Unknown failure"));
+                    Trace.Error("Unknown stats-job response: {0}", firstLine);
                     return;
             }
         }

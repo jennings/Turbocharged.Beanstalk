@@ -74,6 +74,7 @@ namespace Turbocharged.Beanstalk
                     return;
 
                 default:
+                    Trace.Error("Unknown peek response: {0}", firstLine);
                     _tcs.SetException(new Exception("Unknown failure"));
                     return;
             }

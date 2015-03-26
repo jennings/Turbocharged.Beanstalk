@@ -27,6 +27,7 @@ namespace Turbocharged.Beanstalk
             }
             else
             {
+                Trace.Error("Unknown list-tube-used response: {0}", firstLine);
                 _tcs.SetException(new Exception("Unknown use response"));
             }
         }

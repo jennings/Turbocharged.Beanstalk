@@ -38,6 +38,7 @@ namespace Turbocharged.Beanstalk
 
             conn._receiveTask = Disposable.Create(() =>
             {
+                Trace.Info("Disposing PhysicalConnection");
                 cts.Cancel();
                 cts.Dispose();
             });
@@ -60,8 +61,9 @@ namespace Turbocharged.Beanstalk
             await _insertionLock.WaitAsync().ConfigureAwait(false);
             try
             {
-                _requestsAwaitingResponse.Add(request);
                 var data = request.ToByteArray();
+                Trace.Info("Sending {0}, Length = {1}", request.GetType().Name, data.Length);
+                _requestsAwaitingResponse.Add(request);
                 await _stream.WriteAsync(data, 0, data.Length, cancellationToken).ConfigureAwait(false);
             }
             finally
@@ -93,11 +95,13 @@ namespace Turbocharged.Beanstalk
                         var request = _requestsAwaitingResponse.Take(token);
                         try
                         {
+                            Trace.Verbose("Processing {0}", request.GetType().Name);
                             request.Process(incoming, _stream);
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
                             // How rude
+                            Trace.Error("Request {0} threw {1}: {2}", request.GetType().Name, ex.GetType().Name, ex.Message);
                         }
                         pos = 0; // Overwrite the buffer on the next go-round
                         continue;
@@ -105,14 +109,18 @@ namespace Turbocharged.Beanstalk
                     else if (pos == firstLineMaxLength)
                     {
                         // Oops
+                        Trace.Error("Exceeded {0} byte receive buffer", buffer.Length);
                         break;
                     }
                     pos++;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                var a = 1;
+                if (ex is ObjectDisposedException)
+                    Trace.Info("Receive loop ending due to disposed stream");
+                else
+                    Trace.Error("Receive loop threw {1}: {2}", ex.GetType().Name, ex.Message);
             }
 
             // No way to really recover from exiting this loop

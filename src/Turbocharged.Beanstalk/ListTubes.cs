@@ -37,6 +37,7 @@ namespace Turbocharged.Beanstalk
             {
             }
 
+            Trace.Error("Unknown list-tubes response: {0}", firstLine);
             _tcs.SetException(new Exception("Unknown list-tubes response"));
         }
 

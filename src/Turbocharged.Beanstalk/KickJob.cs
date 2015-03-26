@@ -31,6 +31,7 @@ namespace Turbocharged.Beanstalk
                 case "KICKED": _tcs.SetResult(true); return;
                 case "NOT_FOUND": _tcs.SetResult(false); return;
                 default:
+                    Trace.Error("Unknown kick-job response: {0}", firstLine);
                     _tcs.SetException(new Exception("Unknown response from kick-job: '{0}'".FormatWith(firstLine)));
                     return;
             }
