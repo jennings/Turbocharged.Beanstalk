@@ -59,17 +59,15 @@ namespace Turbocharged.Beanstalk
                     return;
 
                 case "JOB_TOO_BIG":
-                    _tcs.SetException(new InvalidOperationException("Server is draining"));
+                    _tcs.SetException(new InvalidOperationException("Job is too big"));
                     return;
 
                 case "DRAINING":
                     _tcs.SetException(new InvalidOperationException("Server is draining"));
                     return;
 
-                case "EXPECTED_CRLF":
                 default:
-                    Trace.Error("Unknown put response: {0}", firstLine);
-                    _tcs.SetException(new InvalidOperationException("Unknown response: " + parts[0]));
+                    Reply.SetGeneralException(_tcs, firstLine, "put");
                     return;
             }
         }

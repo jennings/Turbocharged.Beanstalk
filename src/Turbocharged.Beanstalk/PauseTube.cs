@@ -33,8 +33,7 @@ namespace Turbocharged.Beanstalk
                 case "PAUSED": _tcs.SetResult(true); return;
                 case "NOT_FOUND": _tcs.SetResult(false); return;
                 default:
-                    Trace.Error("Unknown pause-tube response: {0}", firstLine);
-                    _tcs.SetException(new Exception("Unknown response from pause-tube: '{0}'".FormatWith(firstLine)));
+                    Reply.SetGeneralException(_tcs, firstLine, "pause-tube");
                     return;
             }
         }

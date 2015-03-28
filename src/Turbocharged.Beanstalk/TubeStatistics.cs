@@ -77,8 +77,7 @@ namespace Turbocharged.Beanstalk
                     return;
 
                 default:
-                    Trace.Error("Unknown stats-tube response: {0}", firstLine);
-                    _tcs.SetException(new Exception("Unknown failure"));
+                    Reply.SetGeneralException(_tcs, firstLine, "stats-tube");
                     return;
             }
         }

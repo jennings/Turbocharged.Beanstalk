@@ -69,13 +69,22 @@ namespace Turbocharged.Beanstalk
                     return;
 
                 case "NOT_FOUND":
-                    // If we searched by ID, should we instead throw KeyNotFoundException?
                     _tcs.SetResult(null);
                     return;
 
                 default:
-                    Trace.Error("Unknown peek response: {0}", firstLine);
-                    _tcs.SetException(new Exception("Unknown failure"));
+                    if (_id == null)
+                    {
+                        var command = _state == JobState.Ready ? "peek-ready" :
+                                      _state == JobState.Buried ? "peek-buried" :
+                                      _state == JobState.Delayed ? "peek-delayed" :
+                                      "unknown peek";
+                        Reply.SetGeneralException(_tcs, firstLine, command);
+                    }
+                    else
+                    {
+                        Reply.SetGeneralException(_tcs, firstLine, "peek");
+                    }
                     return;
             }
         }

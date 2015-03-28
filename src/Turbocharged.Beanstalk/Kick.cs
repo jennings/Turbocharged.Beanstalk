@@ -27,19 +27,17 @@ namespace Turbocharged.Beanstalk
         public void Process(string firstLine, NetworkStream stream)
         {
             var parts = firstLine.Split(new[] { ' ' }, 3, StringSplitOptions.RemoveEmptyEntries);
-            try
+
+            if (parts.Length == 2 && parts[0] == "KICKED")
             {
-                if (parts.Length == 2 && parts[0] == "KICKED")
+                int kicked;
+                if (int.TryParse(parts[1], out kicked))
                 {
-                    var kicked = Convert.ToInt32(parts[1]);
                     _tcs.SetResult(kicked);
+                    return;
                 }
             }
-            catch
-            {
-            }
-            Trace.Error("Unknown kick response: {0}", firstLine);
-            _tcs.SetException(new Exception("Unknown response from kick: '{0}'".FormatWith(firstLine)));
+            Reply.SetGeneralException(_tcs, firstLine, "kick");
         }
 
         public void Cancel()

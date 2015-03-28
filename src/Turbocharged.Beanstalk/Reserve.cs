@@ -56,8 +56,8 @@ namespace Turbocharged.Beanstalk
                     return;
 
                 default:
-                    Trace.Error("Unknown reserve response: {0}", firstLine);
-                    _tcs.SetException(new Exception("Unknown failure"));
+                    var command = _timeout.HasValue ? "reserve-with-timeout" : "reserve";
+                    Reply.SetGeneralException(_tcs, firstLine, command);
                     return;
             }
         }

@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Reply.cs" />
     <Compile Include="IJobSerializer.cs" />
     <Compile Include="ConnectionConfiguration.cs" />
     <Compile Include="IServer.cs" />

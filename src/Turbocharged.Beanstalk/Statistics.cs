@@ -104,8 +104,7 @@ namespace Turbocharged.Beanstalk
                     }
 
                 default:
-                    Trace.Error("Unknown stats response: {0}", firstLine);
-                    _tcs.SetException(new Exception(parts[0]));
+                    Reply.SetGeneralException(_tcs, firstLine, "stats");
                     return;
             }
         }

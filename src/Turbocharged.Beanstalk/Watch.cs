@@ -36,8 +36,7 @@ namespace Turbocharged.Beanstalk
             }
             else
             {
-                Trace.Error("Unknown watch response: {0}", firstLine);
-                _tcs.SetException(new Exception("Unknown watch response"));
+                Reply.SetGeneralException(_tcs, firstLine, "watch");
             }
         }
 

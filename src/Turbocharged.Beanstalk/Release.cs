@@ -44,8 +44,7 @@ namespace Turbocharged.Beanstalk
                     return;
 
                 default:
-                    Trace.Error("Unknown release response: {0}", firstLine);
-                    _tcs.SetException(new InvalidOperationException("Unknown response: " + firstLine));
+                    Reply.SetGeneralException(_tcs, firstLine, "release");
                     return;
             }
         }

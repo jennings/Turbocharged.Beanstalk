@@ -37,8 +37,7 @@ namespace Turbocharged.Beanstalk
             {
             }
 
-            Trace.Error("Unknown list-tubes-watched response: {0}", firstLine);
-            _tcs.SetException(new Exception("Unknown list-tubes-watched response"));
+            Reply.SetGeneralException(_tcs, firstLine, "list-tubes-watched");
         }
 
         public void Cancel()

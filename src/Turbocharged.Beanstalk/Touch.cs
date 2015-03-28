@@ -37,8 +37,7 @@ namespace Turbocharged.Beanstalk
                     return;
 
                 default:
-                    Trace.Error("Unknown touch response: {0}", firstLine);
-                    _tcs.SetException(new InvalidOperationException("Unknown response: " + firstLine));
+                    Reply.SetGeneralException(_tcs, firstLine, "touch");
                     return;
             }
         }
