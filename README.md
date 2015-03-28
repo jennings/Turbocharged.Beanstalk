@@ -44,7 +44,7 @@ Do the normal thing:
     Job job = await consumer.ReserveAsync();
 
     // You can also deserialize if you know what type you're expecting
-    // Job<MyObject> = await consumer.ReserveAsync<MyObject>();
+    // Job<MyObject> job = await consumer.ReserveAsync<MyObject>();
 
     // ...work work work...
 
