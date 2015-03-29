@@ -27,6 +27,7 @@ namespace Turbocharged.Beanstalk
 
         public static async Task<PhysicalConnection> ConnectAsync(string hostname, int port)
         {
+            Trace.Verbose("New PhysicalConnection to {0}:{1}", hostname, port);
             var conn = new PhysicalConnection();
             await conn._client.ConnectAsync(hostname, port).ConfigureAwait(false);
             conn._stream = conn._client.GetStream();
@@ -38,7 +39,6 @@ namespace Turbocharged.Beanstalk
 
             conn._receiveTask = Disposable.Create(() =>
             {
-                Trace.Info("Disposing PhysicalConnection");
                 cts.Cancel();
                 cts.Dispose();
             });
@@ -48,6 +48,7 @@ namespace Turbocharged.Beanstalk
 
         public void Dispose()
         {
+            Trace.Info("Disposing PhysicalConnection");
             using (_client)
             using (_stream)
             {
@@ -62,7 +63,7 @@ namespace Turbocharged.Beanstalk
             try
             {
                 var data = request.ToByteArray();
-                Trace.Info("Sending {0}, Length = {1}", request.GetType().Name, data.Length);
+                Trace.Info("Sending {0}, Length = {1} bytes", request.GetType().Name, data.Length);
                 _requestsAwaitingResponse.Add(request);
                 await _stream.WriteAsync(data, 0, data.Length, cancellationToken).ConfigureAwait(false);
             }
@@ -92,10 +93,11 @@ namespace Turbocharged.Beanstalk
                     {
                         // We have a line, make it a string and send it to whoever is waiting for it.
                         var incoming = buffer.ToASCIIString(0, pos - 1);
+                        Trace.Verbose("Received: `{0}`", incoming);
                         var request = _requestsAwaitingResponse.Take(token);
                         try
                         {
-                            Trace.Verbose("Processing {0}", request.GetType().Name);
+                            Trace.Info("Processing {0}", request.GetType().Name);
                             request.Process(incoming, _stream);
                         }
                         catch (Exception ex)
@@ -132,6 +134,7 @@ namespace Turbocharged.Beanstalk
         {
             // TODO: Probably make BeanstalkConnection establish a new connection
             //       and migrate all un-popped requests to the new connection
+            Trace.Info("Draining reactor");
             Request request;
             while (_requestsAwaitingResponse.TryTake(out request))
             {
