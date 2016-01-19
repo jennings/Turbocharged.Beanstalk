@@ -14,7 +14,7 @@ namespace Turbocharged.Beanstalk
         TaskCompletionSource<Job> _tcs = new TaskCompletionSource<Job>();
         TimeSpan? _timeout;
 
-        public ReserveRequest(TimeSpan timeout)
+        public ReserveRequest(TimeSpan? timeout)
         {
             _timeout = timeout;
         }

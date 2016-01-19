@@ -11,6 +11,12 @@ namespace Turbocharged.Beanstalk
         public T Object { get; internal set; }
     }
 
+    public class DeserializationException : Exception
+    {
+        public DeserializationException(Exception inner) : base(inner.Message, inner) { }
+        public Job Job;
+    }
+
     public static class SerializationExtensions
     {
         #region PutAsync
@@ -37,22 +43,46 @@ namespace Turbocharged.Beanstalk
 
         #region ReserveAsync
 
-        public static async Task<Job<T>> ReserveAsync<T>(this IConsumer consumer)
+        private static async Task<Job<T>> ReserveAsync<T>(this IConsumer consumer, TimeSpan? timeout)
         {
             var connection = consumer as BeanstalkConnection;
             if (connection == null) throw new ArgumentException("consumer", "Consumer must have been created by Turbocharged.Beanstalk");
 
-            var job = await consumer.ReserveAsync().ConfigureAwait(false);
+            Job job;
+            if (timeout.HasValue)
+                job = await consumer.ReserveAsync(timeout.Value).ConfigureAwait(false);
+            else
+                job = await consumer.ReserveAsync().ConfigureAwait(false);
+
             return Deserialize<T>(connection, job);
         }
 
+        /// <summary>
+        /// Reserve a job, waiting indefinitely, and then deserialize the job data to &lt;T&gt;.
+        /// Note that the job remains reserved even if a DeserializationException is thrown.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="timeout"></param>
+        /// <returns>A reserved Job&lt;T&gt;, or null on a DEADLINE_SOON response.</returns>
+        /// <exception cref="System.TimeoutException">Thrown when the timeout period elapses.</exception>
+        /// <exception cref="Turbocharged.Beanstalk.DeserializationException">Thrown when deserialization to &lt;T&gt; fails.</exception>
+        public static async Task<Job<T>> ReserveAsync<T>(this IConsumer consumer)
+        {
+            return await ReserveAsync<T>(consumer, null);
+        }
+        
+        /// <summary>
+        /// Reserve a job, waiting for the specified timeout, and then deserialize the job data to &lt;T&gt;.
+        /// Note that the job remains reserved even if a DeserializationException is thrown.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="timeout"></param>
+        /// <returns>A reserved Job&lt;T&gt;, or null on a DEADLINE_SOON response.</returns>
+        /// <exception cref="System.TimeoutException">Thrown when the timeout period elapses.</exception>
+        /// <exception cref="Turbocharged.Beanstalk.DeserializationException">Thrown when deserialization to &lt;T&gt; fails.</exception>
         public static async Task<Job<T>> ReserveAsync<T>(this IConsumer consumer, TimeSpan timeout)
         {
-            var connection = consumer as BeanstalkConnection;
-            if (connection == null) throw new ArgumentException("consumer", "Consumer must have been created by Turbocharged.Beanstalk");
-
-            var job = await consumer.ReserveAsync(timeout).ConfigureAwait(false);
-            return Deserialize<T>(connection, job);
+            return await ReserveAsync<T>(consumer, (TimeSpan?) timeout);
         }
 
         #endregion
@@ -107,13 +137,25 @@ namespace Turbocharged.Beanstalk
             if (job == null)
                 return null;
 
-            var obj = connection.Configuration.JobSerializer.Deserialize<T>(job.Data);
-            return new Job<T>
+            try
             {
-                Id = job.Id,
-                Data = job.Data,
-                Object = obj,
-            };
+                var obj = connection.Configuration.JobSerializer.Deserialize<T>(job.Data);
+                return new Job<T>
+                {
+                    Id = job.Id,
+                    Data = job.Data,
+                    Object = obj,
+                };
+            }
+            catch (Exception ex)
+            {
+                DeserializationException desEx = new DeserializationException(ex)
+                {
+                    Job = job
+                };
+
+                throw desEx;
+            }
         }
     }
 }

@@ -44,7 +44,7 @@ namespace Turbocharged.Beanstalk
         Task<Job> ReserveAsync(TimeSpan timeout);
 
         /// <summary>
-        /// Retrives a job without reserving it.
+        /// Retrieves a job without reserving it.
         /// </summary>
         /// <returns>A job, or null if the job was not found.</returns>
         Task<Job> PeekAsync(int id);

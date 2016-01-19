@@ -73,6 +73,47 @@ namespace Turbocharged.Beanstalk.Tests
         }
 
         [Fact]
+        public async Task DeserializeFailureThrows()
+        {
+            await ConnectAsync();
+            string strBadJSON = "{\"invalid\":\"JSON\",\"garbage\": }}";
+            //use the byte[] so we can compare easily later
+            byte[] badJSON = (prod as BeanstalkConnection).Configuration.JobSerializer.Serialize(strBadJSON);
+            await DrainUsedTube();
+            var id = await prod.PutAsync(badJSON, 1, TimeSpan.FromSeconds(1));
+
+            await Assert.ThrowsAsync<DeserializationException>(async () => { await cons.PeekAsync<Jobject>(id); });
+            try
+            {
+                //reserve succeeds, deserialization fails
+                await cons.ReserveAsync<Jobject>();
+            }
+            catch (DeserializationException dex)
+            {
+                Assert.Equal(id, dex.Job.Id);
+                Assert.Equal(badJSON, dex.Job.Data);
+            }
+            //prove the reserve succeeded
+            await cons.ReleaseAsync(id, 1, TimeSpan.FromSeconds(1));
+
+            //test the timeout overload
+            try
+            {
+                //reserve succeeds, deserialization fails
+                await cons.ReserveAsync<Jobject>(TimeSpan.FromSeconds(1));
+            }
+            catch (DeserializationException dex)
+            {
+                Assert.Equal(id, dex.Job.Id);
+                Assert.Equal(badJSON, dex.Job.Data);
+            }
+            //prove the reserve succeeded
+            await cons.ReleaseAsync(id, 1, TimeSpan.FromSeconds(1));
+            //clean up
+            await cons.DeleteAsync(id);
+        }
+
+        [Fact]
         public async Task TypedWorkersWork()
         {
             int counter = 0;
