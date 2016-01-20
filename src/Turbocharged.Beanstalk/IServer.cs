@@ -12,6 +12,11 @@ namespace Turbocharged.Beanstalk
     public interface IServer
     {
         /// <summary>
+        /// The configuration used to create this Beanstalk server.
+        /// </summary>
+        ConnectionConfiguration Configuration { get; }
+
+        /// <summary>
         /// Retrieves the list of tubes on the server.
         /// </summary>
         Task<List<string>> ListTubesAsync();

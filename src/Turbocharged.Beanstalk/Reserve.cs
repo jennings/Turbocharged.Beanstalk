@@ -83,11 +83,7 @@ namespace Turbocharged.Beanstalk
             stream.ReadByte(); // CR
             stream.ReadByte(); // LF
 
-            job = new Job
-            {
-                Id = id,
-                Data = buffer,
-            };
+            job = new Job(id, buffer);
             return true;
         }
 

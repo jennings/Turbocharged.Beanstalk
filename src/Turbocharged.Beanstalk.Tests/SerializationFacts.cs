@@ -148,6 +148,20 @@ namespace Turbocharged.Beanstalk.Tests
             Assert.Equal(1, serializer.SerializeCount);
             Assert.Equal(1, serializer.DeserializeCount);
         }
+
+        [Fact]
+        public async Task SerializerExtensionsSucceedWithMockedImplementations()
+        {
+            var jobs = new[]
+            {
+                new Job(1, Encoding.Unicode.GetBytes(@"{ 'Int': 1, 'String': 'hello' }")),
+                new Job(2, Encoding.Unicode.GetBytes(@"{ 'Int': 2, 'String': 'world' }")),
+            };
+            var fake = new FakeConsumer(jobs);
+
+            var job = await fake.ReserveAsync<Jobject>();
+            Assert.Equal(1, job.Id);
+        }
     }
 
     class Jobject

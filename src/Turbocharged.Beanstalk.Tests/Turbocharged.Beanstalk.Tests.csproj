@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyExtensions.cs" />
+    <Compile Include="FakeConsumer.cs" />
     <Compile Include="SerializationFacts.cs" />
     <Compile Include="MiscellaneousFacts.cs" />
     <Compile Include="ConnectionFacts.cs" />
