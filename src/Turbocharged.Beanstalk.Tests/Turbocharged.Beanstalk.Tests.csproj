@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyExtensions.cs" />
+    <Compile Include="FakesAndMocks\ThrowingSerializer.cs" />
     <Compile Include="FakesAndMocks\CountingSerializer.cs" />
     <Compile Include="FakesAndMocks\FakeConsumer.cs" />
     <Compile Include="SerializationFacts.cs" />

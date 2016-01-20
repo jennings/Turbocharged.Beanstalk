@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Turbocharged.Beanstalk.Tests.FakesAndMocks;
 using Xunit;
 
 namespace Turbocharged.Beanstalk.Tests
@@ -42,6 +43,12 @@ namespace Turbocharged.Beanstalk.Tests
 
         async Task DrainUsedTube()
         {
+            // Get everything out of delayed/buried
+            while (await prod.KickAsync(1000) == 1000)
+            {
+                // Nothing
+            }
+
             Job job;
             while ((job = await prod.PeekAsync()) != null)
                 await cons.DeleteAsync(job.Id);
@@ -531,6 +538,50 @@ namespace Turbocharged.Beanstalk.Tests
 
             var stat = await prod.JobStatisticsAsync(receivedJobId);
             Assert.Equal(JobState.Buried, stat.State);
+        }
+
+        [Theory]
+        [InlineData(WorkerFailureBehavior.Delete)]
+        [InlineData(WorkerFailureBehavior.Bury)]
+        [InlineData(WorkerFailureBehavior.Release)]
+        [InlineData(WorkerFailureBehavior.NoAction)]
+        public async Task ConnectWorker_FollowsFailureOptionsIfTheDeserializerThrows(WorkerFailureBehavior behavior)
+        {
+            await ConnectAsync();
+            await prod.UseAsync("watched");
+            await DrainUsedTube();
+
+            // Ensure all messages will fail horribly during deserialization
+            var configuration = ConnectionConfiguration.Parse(connectionString);
+            configuration.JobSerializer = new ThrowingSerializer();
+
+            bool gotInsideWorkerFunc = false;
+
+            var options = new WorkerOptions { Tubes = { "watched" }, FailureBehavior = behavior, FailureReleaseDelay = TenSeconds };
+            var worker = BeanstalkConnection.ConnectWorkerAsync<Jobject>(configuration, options, async (c, _) =>
+            {
+                gotInsideWorkerFunc = true;
+                await c.DeleteAsync();
+            });
+
+            int jobId;
+            using (await worker)
+            {
+                jobId = await prod.PutAsync(new byte[] { }, 1, TenSeconds, ZeroSeconds);
+                await Task.Delay(200);
+            }
+
+            Assert.False(gotInsideWorkerFunc);
+
+            var stats = await prod.JobStatisticsAsync(jobId);
+            switch (behavior)
+            {
+                case WorkerFailureBehavior.Delete: Assert.Null(stats); return;
+                case WorkerFailureBehavior.Bury: Assert.Equal(JobState.Buried, stats.State); return;
+                case WorkerFailureBehavior.Release: Assert.Equal(JobState.Delayed, stats.State); return;
+                case WorkerFailureBehavior.NoAction: Assert.Equal(JobState.Reserved, stats.State); return;
+                default: throw new Exception("Untested behavior");
+            }
         }
 
         [Fact]
