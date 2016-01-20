@@ -13,8 +13,15 @@ namespace Turbocharged.Beanstalk
 
     public class DeserializationException : Exception
     {
-        public DeserializationException(Exception inner) : base(inner.Message, inner) { }
-        public Job Job;
+        const string DESERIALIZATION_MESSAGE = "Job could not be deserialized.";
+
+        public Job Job { get; private set; }
+
+        public DeserializationException(Job job, Exception inner)
+            : base(DESERIALIZATION_MESSAGE, inner)
+        {
+            Job = job;
+        }
     }
 
     public static class SerializationExtensions
@@ -149,12 +156,7 @@ namespace Turbocharged.Beanstalk
             }
             catch (Exception ex)
             {
-                DeserializationException desEx = new DeserializationException(ex)
-                {
-                    Job = job
-                };
-
-                throw desEx;
+                throw new DeserializationException(job, ex);
             }
         }
     }
