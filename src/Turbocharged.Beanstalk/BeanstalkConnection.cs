@@ -297,20 +297,16 @@ namespace Turbocharged.Beanstalk
 
         #region Consumer
 
-        private Task<Job> ReserveAsync(TimeSpan? timeout)
+        Task<Job> IConsumer.ReserveAsync(TimeSpan timeout)
         {
             var request = new ReserveRequest(timeout);
             return SendAndGetResult(request);
         }
 
-        Task<Job> IConsumer.ReserveAsync(TimeSpan timeout)
-        {
-            return ReserveAsync((TimeSpan?)timeout);
-        }
-
         Task<Job> IConsumer.ReserveAsync()
         {
-            return ReserveAsync(null);
+            var request = new ReserveRequest();
+            return SendAndGetResult(request);
         }
 
         /// <summary>

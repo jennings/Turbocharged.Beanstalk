@@ -14,11 +14,20 @@ namespace Turbocharged.Beanstalk
         TaskCompletionSource<Job> _tcs = new TaskCompletionSource<Job>();
         TimeSpan? _timeout;
 
-        public ReserveRequest(TimeSpan? timeout)
+        /// <summary>
+        /// Creates a "reserve" request which will last until
+        /// a job is reserved, the timeout expires, or the
+        /// connection is torn down.
+        /// </summary>
+        public ReserveRequest(TimeSpan timeout)
         {
             _timeout = timeout;
         }
 
+        /// <summary>
+        /// Creates a "reserve" request which will last until
+        /// a job is reserved or the connection is torn down.
+        /// </summary>
         public ReserveRequest()
         {
             _timeout = null;
