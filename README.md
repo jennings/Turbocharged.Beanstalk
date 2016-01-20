@@ -17,71 +17,142 @@ Do the normal thing:
 
     PM> Install-Package Turbocharged.Beanstalk
 
+
+Because of the way the Beanstalk protocol works, it's important that producers
+and consumers use separate connections. So, when creating a
+`BeanstalkConnection`, you need to choose whether it's a consumer or producer.
+
+
+
 ### Producing Jobs
 
-    // Jobs are byte arrays
-    byte[] job = new byte[] { 102, 105, 101, 116, 123, 124, 101, 114, 113 };
+Create a Producer if you need to insert jobs. Most producer methods are
+affected by `UseAsync(tube)`.
 
-    // A producer exposes methods used for inserting jobs
-    // Most producer methods are affected by UseAsync(tube)
+```c#
+IProducer producer = await BeanstalkConnection.ConnectProducerAsync("localhost:11300");
+await producer.UseAsync("mytube");
+```
 
-    IProducer producer = await BeanstalkConnection.ConnectProducerAsync("localhost:11300");
-    await producer.UseAsync("mytube");
-    await producer.PutAsync(job, 5, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+Beanstalk jobs are just blobs, so jobs are represented as byte arrays.
 
-    // You can also put custom objects and they'll be serialized to JSON
-    await producer.PutAsync<MyObject>(obj, 5, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+```c#
+byte[] job = new byte[] { 102, 105, 101, 116, 123, 124, 101, 114, 113 };
+await producer.PutAsync(job, 5, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+```
 
-    producer.Dispose();
+Not feeling the love for byte arrays? You can also put custom objects and
+they'll be serialized. The default is JSON.
+
+
+```c#
+await producer.PutAsync<MyObject>(obj, 5, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+```
+
+
+Since Beanstalk maintains a TCP connection, you need to clean up your toys when
+you're done:
+
+```c#
+producer.Dispose();
+```
+
+
 
 ### Consuming jobs
 
-    // A consumer exposes methods for reserving and deleting jobs
-    // Most consumer methods are affected by WatchAsync(tube)
+If you need to consume jobs, create a Consumer instead. Most consumer methods
+are affected by `WatchAsync(tube)` and `IgnoreAsync(tube)`.
 
-    IConsumer consumer = await BeanstalkConnection.ConnectConsumerAsync("localhost:11300");
-    await consumer.WatchAsync("mytube");
-    Job job = await consumer.ReserveAsync();
+```c#
+IConsumer consumer = await BeanstalkConnection.ConnectConsumerAsync("localhost:11300");
+await consumer.WatchAsync("mytube");
+```
 
-    // You can also deserialize if you know what type you're expecting
-    // Job<MyObject> job = await consumer.ReserveAsync<MyObject>();
+To ask Beanstalk for a job, reserve it:
 
-    // ...work work work...
+```c#
+Job job = await consumer.ReserveAsync();
+// or: 
+Job job = await consumer.ReserveAsync(timeout: TimeSpan.FromSeconds(10));
 
-    if (success)
-        await consumer.DeleteAsync(job.Id);
-    else
-        await consumer.BuryAsync(job.Id, priority: 5);
+Console.WriteLine("Reserved job ID = {0}, Length = ", job.Id, job.Data.Length);
+```
 
-    consumer.Dispose();
+
+You can also deserialize if you know what type you're expecting.
+
+```c#
+Job<MyObject> job = await consumer.ReserveAsync<MyObject>();
+```
+
+When you're done with your job, ask your consumer to delete it or bury it.
+
+```c#
+if (success)
+    await consumer.DeleteAsync(job.Id);
+else
+    await consumer.BuryAsync(job.Id, priority: 5);
+```
+
+Again, clean up after yourself when you don't need the connection anymore:
+
+```c#
+consumer.Dispose();
+```
+
+
 
 ### Creating a worker task
 
-    Func<IWorker, Job, Task> workerFunc = async (worker, job) =>
-    {
-        // ... work with the job...
-        if (success)
-            await worker.DeleteAsync(job.Id);
-        else
-            await worker.BuryAsync(job.Id, 1);
-    };
+A worker task is a `BeanstalkConnection` that processes jobs in a loop.
 
-    IDisposable worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, workerFunc);
+1. You provide a delegate with signature `Func<IWorker, Job, Task>`.
+   Turbocharged.Beanstalk immediately connects and called "reserve" for you.
 
-    // Or, typed:
+2. Your delegate gets called whenever a job is reserved.
 
-    Func<IWorker, Job<T>, Task> typedWorkerFunc = ...;
+3. Call DeleteAsync or BuryAsync when you're finished.
 
-    IDisposable typedWorker = BeanstalkConnection.ConnectWorkerAsync<MyObject>(hostname, port, typedWorkerFunc);
 
-    // When you're ready to stop the workers
-    worker.Dispose();
-    typedWorker.Dispose();
+It looks like this:
 
-A worker task is a dedicated BeanstalkConnection. You provide a delegate with
-signature `Func<IWorker, Job, Task>` to process jobs and delete/bury them when
-finished. Turbocharged.Beanstalk calls "reserve" for you and hands the reserved
-job to your delegate.
+```c#
+private Task MyWorkerFunc(IWorker worker, Job job)
+{
+    bool success = ProcessJob(job.Data);
+    if (success)
+        await worker.DeleteAsync(job.Id);
+    else
+        await worker.BuryAsync(job.Id, 1);
+}
+
+IDisposable worker = BeanstalkConnection.ConnectWorkerAsync(hostname, port, MyWorkerFunc);
+
+```
+
+
+You can also use serialized messages:
+
+```c#
+private Task MyTypedWorkerFunc(IWorker worker, Job<MyObject> job)
+{
+    bool success = ProcessJob(job.Object);
+    if (success)
+        await worker.DeleteAsync(job.Id);
+    else
+        await worker.BuryAsync(job.Id, 1);
+}
+
+IDisposable worker = BeanstalkConnection.ConnectWorkerAsync<MyObject>(hostname, port, MyTypedWorkerFunc);
+```
+
+
+As usual, dispose the worker to make it stop.
+
+```c#
+worker.Dispose();
+```
 
 
 Goals
