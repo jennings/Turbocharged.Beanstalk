@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Turbocharged.Beanstalk.Tests
+namespace Turbocharged.Beanstalk.Tests.FakesAndMocks
 {
     class FakeConsumer : IConsumer
     {
