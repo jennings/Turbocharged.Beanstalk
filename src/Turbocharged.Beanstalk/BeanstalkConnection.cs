@@ -93,13 +93,9 @@ namespace Turbocharged.Beanstalk
         {
             WorkerFunc workerFunc = (w, untypedJob) =>
             {
+                // If the deserializer throws, this will be handled like any other failure of the WorkerFunc.
                 var obj = configuration.JobSerializer.Deserialize<T>(untypedJob.Data);
-                var typedJob = new Job<T>
-                {
-                    Id = untypedJob.Id,
-                    Data = untypedJob.Data,
-                    Object = obj,
-                };
+                var typedJob = new Job<T>(untypedJob.Id, untypedJob.Data, obj);
                 return worker(w, typedJob);
             };
             return ConnectWorkerAsync(configuration, options, workerFunc);

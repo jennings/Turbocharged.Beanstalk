@@ -14,11 +14,20 @@ namespace Turbocharged.Beanstalk
         TaskCompletionSource<Job> _tcs = new TaskCompletionSource<Job>();
         TimeSpan? _timeout;
 
+        /// <summary>
+        /// Creates a "reserve" request which will last until
+        /// a job is reserved, the timeout expires, or the
+        /// connection is torn down.
+        /// </summary>
         public ReserveRequest(TimeSpan timeout)
         {
             _timeout = timeout;
         }
 
+        /// <summary>
+        /// Creates a "reserve" request which will last until
+        /// a job is reserved or the connection is torn down.
+        /// </summary>
         public ReserveRequest()
         {
             _timeout = null;
@@ -74,11 +83,7 @@ namespace Turbocharged.Beanstalk
             stream.ReadByte(); // CR
             stream.ReadByte(); // LF
 
-            job = new Job
-            {
-                Id = id,
-                Data = buffer,
-            };
+            job = new Job(id, buffer);
             return true;
         }
 

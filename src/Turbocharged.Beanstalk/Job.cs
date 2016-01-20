@@ -10,8 +10,17 @@ namespace Turbocharged.Beanstalk
 {
     public class Job
     {
-        public int Id { get; internal set; }
-        public byte[] Data { get; internal set; }
+        public int Id { get; private set; }
+        public byte[] Data { get; private set; }
+
+        public Job(int id, byte[] data)
+        {
+            if (data == null)
+                throw new ArgumentNullException("data");
+
+            Id = id;
+            Data = data;
+        }
 
         public override string ToString()
         {

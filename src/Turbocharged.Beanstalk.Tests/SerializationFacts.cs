@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using Turbocharged.Beanstalk.Tests.FakesAndMocks;
 using Xunit;
 
 namespace Turbocharged.Beanstalk.Tests
@@ -73,6 +73,82 @@ namespace Turbocharged.Beanstalk.Tests
         }
 
         [Fact]
+        public async Task PeekingMessagesThatCannotDeserializeThrowsDeserializationException()
+        {
+            byte[] badJSON = Encoding.UTF8.GetBytes(@"{ ""invalid"" : ""JSON"", ""garbage"": }}");
+
+            await ConnectAsync();
+            await DrainUsedTube();
+            var id = await prod.PutAsync(badJSON, 1, TenSeconds);
+
+            try
+            {
+                var job = await cons.PeekAsync<Jobject>(id);
+                throw new Exception(string.Format("Peek did not throw. Job = ", job));
+            }
+            catch (DeserializationException ex)
+            {
+                Assert.Equal(ex.Job.Id, id);
+                Assert.Equal(badJSON, ex.Job.Data);
+            }
+        }
+
+        [Fact]
+        public async Task ReservingMessagesThatCannotDeserializeThrowsDeserializationException()
+        {
+            byte[] badJSON = Encoding.UTF8.GetBytes(@"{ ""invalid"" : ""JSON"", ""garbage"": }}");
+
+            await ConnectAsync();
+            await DrainUsedTube();
+            var id = await prod.PutAsync(badJSON, 1, TenSeconds);
+
+            try
+            {
+                // Reserve succeeds, deserialization fails
+                await cons.ReserveAsync<Jobject>();
+            }
+            catch (DeserializationException dex)
+            {
+                Assert.Equal(id, dex.Job.Id);
+                Assert.Equal(badJSON, dex.Job.Data);
+            }
+
+            // The message should be reserved
+            var stats = await prod.JobStatisticsAsync(id);
+            Assert.Equal(JobState.Reserved, stats.State);
+
+            // Clean up
+            await cons.DeleteAsync(id);
+        }
+
+        [Fact]
+        public async Task ReservingMessagesWithTimeoutThatCannotDeserializeThrowsDeserializationException()
+        {
+            byte[] badJSON = Encoding.UTF8.GetBytes(@"{ ""invalid"" : ""JSON"", ""garbage"": }}");
+
+            await ConnectAsync();
+            await DrainUsedTube();
+            var id = await prod.PutAsync(badJSON, 1, TenSeconds);
+
+            try
+            {
+                // Reserve succeeds, deserialization fails
+                await cons.ReserveAsync<Jobject>(TimeSpan.FromSeconds(1));
+            }
+            catch (DeserializationException dex)
+            {
+                Assert.Equal(id, dex.Job.Id);
+                Assert.Equal(badJSON, dex.Job.Data);
+            }
+
+            // The message should be reserved
+            var stats = await prod.JobStatisticsAsync(id);
+            Assert.Equal(JobState.Reserved, stats.State);
+
+            await cons.DeleteAsync(id);
+        }
+
+        [Fact]
         public async Task TypedWorkersWork()
         {
             int counter = 0;
@@ -99,13 +175,29 @@ namespace Turbocharged.Beanstalk.Tests
         {
             var serializer = new CountingSerializer();
             config.JobSerializer = serializer;
-            var prod = await BeanstalkConnection.ConnectProducerAsync(config);
-            await prod.UseAsync("jobjects");
-            var id = await prod.PutAsync<Jobject>(new Jobject(), 1, TimeSpan.FromSeconds(10));
-            await prod.PeekAsync<Jobject>(id);
+            using (var prod = await BeanstalkConnection.ConnectProducerAsync(config))
+            {
+                await prod.UseAsync("jobjects");
+                var id = await prod.PutAsync<Jobject>(new Jobject(), 1, TimeSpan.FromSeconds(10));
+                await prod.PeekAsync<Jobject>(id);
+            }
 
             Assert.Equal(1, serializer.SerializeCount);
             Assert.Equal(1, serializer.DeserializeCount);
+        }
+
+        [Fact]
+        public async Task SerializerExtensionsSucceedWithMockedImplementations()
+        {
+            var jobs = new[]
+            {
+                new Job(1, Encoding.Unicode.GetBytes(@"{ 'Int': 1, 'String': 'hello' }")),
+                new Job(2, Encoding.Unicode.GetBytes(@"{ 'Int': 2, 'String': 'world' }")),
+            };
+            var fake = new FakeConsumer(jobs);
+
+            var job = await fake.ReserveAsync<Jobject>();
+            Assert.Equal(1, job.Id);
         }
     }
 
@@ -113,25 +205,5 @@ namespace Turbocharged.Beanstalk.Tests
     {
         public int Int { get; set; }
         public string String { get; set; }
-    }
-
-    class CountingSerializer : IJobSerializer
-    {
-        public int SerializeCount = 0;
-        public int DeserializeCount = 0;
-
-        public byte[] Serialize<T>(T job)
-        {
-            SerializeCount++;
-            var str = JsonConvert.SerializeObject(job, Formatting.None);
-            return Encoding.UTF8.GetBytes(str);
-        }
-
-        public T Deserialize<T>(byte[] buffer)
-        {
-            DeserializeCount++;
-            var str = Encoding.UTF8.GetString(buffer);
-            return JsonConvert.DeserializeObject<T>(str);
-        }
     }
 }
