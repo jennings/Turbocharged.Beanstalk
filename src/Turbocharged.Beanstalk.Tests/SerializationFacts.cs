@@ -175,10 +175,12 @@ namespace Turbocharged.Beanstalk.Tests
         {
             var serializer = new CountingSerializer();
             config.JobSerializer = serializer;
-            var prod = await BeanstalkConnection.ConnectProducerAsync(config);
-            await prod.UseAsync("jobjects");
-            var id = await prod.PutAsync<Jobject>(new Jobject(), 1, TimeSpan.FromSeconds(10));
-            await prod.PeekAsync<Jobject>(id);
+            using (var prod = await BeanstalkConnection.ConnectProducerAsync(config))
+            {
+                await prod.UseAsync("jobjects");
+                var id = await prod.PutAsync<Jobject>(new Jobject(), 1, TimeSpan.FromSeconds(10));
+                await prod.PeekAsync<Jobject>(id);
+            }
 
             Assert.Equal(1, serializer.SerializeCount);
             Assert.Equal(1, serializer.DeserializeCount);
