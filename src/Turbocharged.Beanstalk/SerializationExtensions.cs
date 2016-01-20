@@ -53,17 +53,6 @@ namespace Turbocharged.Beanstalk
 
         #region ReserveAsync
 
-        private static async Task<Job<T>> ReserveAsync<T>(this IConsumer consumer, TimeSpan? timeout)
-        {
-            Job job;
-            if (timeout.HasValue)
-                job = await consumer.ReserveAsync(timeout.Value).ConfigureAwait(false);
-            else
-                job = await consumer.ReserveAsync().ConfigureAwait(false);
-
-            return Deserialize<T>(consumer, job);
-        }
-
         /// <summary>
         /// Reserve a job, waiting indefinitely, and then deserialize the job data to &lt;T&gt;.
         /// Note that the job remains reserved even if a DeserializationException is thrown.
@@ -71,11 +60,11 @@ namespace Turbocharged.Beanstalk
         /// <typeparam name="T"></typeparam>
         /// <param name="timeout"></param>
         /// <returns>A reserved Job&lt;T&gt;, or null on a DEADLINE_SOON response.</returns>
-        /// <exception cref="System.TimeoutException">Thrown when the timeout period elapses.</exception>
         /// <exception cref="Turbocharged.Beanstalk.DeserializationException">Thrown when deserialization to &lt;T&gt; fails.</exception>
         public static async Task<Job<T>> ReserveAsync<T>(this IConsumer consumer)
         {
-            return await ReserveAsync<T>(consumer, null);
+            var job = await consumer.ReserveAsync().ConfigureAwait(false);
+            return Deserialize<T>(consumer, job);
         }
         
         /// <summary>
@@ -89,7 +78,8 @@ namespace Turbocharged.Beanstalk
         /// <exception cref="Turbocharged.Beanstalk.DeserializationException">Thrown when deserialization to &lt;T&gt; fails.</exception>
         public static async Task<Job<T>> ReserveAsync<T>(this IConsumer consumer, TimeSpan timeout)
         {
-            return await ReserveAsync<T>(consumer, (TimeSpan?) timeout);
+            var job = await consumer.ReserveAsync(timeout).ConfigureAwait(false);
+            return Deserialize<T>(consumer, job);
         }
 
         #endregion
