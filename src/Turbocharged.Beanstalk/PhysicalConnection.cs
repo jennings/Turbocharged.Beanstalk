@@ -53,7 +53,7 @@ namespace Turbocharged.Beanstalk
             using (_stream)
             {
                 _receiveTask.Dispose();
-                _client.Close();
+                _client.Dispose();
             }
         }
 
