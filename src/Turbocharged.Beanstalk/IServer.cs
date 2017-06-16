@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 namespace Turbocharged.Beanstalk
 {
     /// <summary>
-    /// Provides methods useful for inserting jobs into Beanstalk.
+    /// Provides methods useful for inspecting the status of a Beanstalk
+    /// server.
     /// </summary>
     public interface IServer
     {
