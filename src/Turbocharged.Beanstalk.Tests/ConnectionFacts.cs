@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -24,8 +23,8 @@ namespace Turbocharged.Beanstalk.Tests
 
         public ConnectionFacts()
         {
-            hostname = Environment.GetEnvironmentVariable("BEANSTALK_HOSTNAME") ?? ConfigurationManager.AppSettings["Hostname"];
-            port = Convert.ToInt32(Environment.GetEnvironmentVariable("BEANSTALK_PORT") ?? ConfigurationManager.AppSettings["Port"]);
+            hostname = Settings.BeanstalkHostName;
+            port = Settings.BeanstalkPort;
             connectionString = string.Format("{0}:{1}", hostname, port);
         }
 
