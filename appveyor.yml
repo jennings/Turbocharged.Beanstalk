@@ -1,0 +1,18 @@
+version: 1.0.{build}
+image: Visual Studio 2017
+configuration: Release
+
+before_build:
+  - cmd: dotnet restore
+
+build:
+  verbosity: minimal
+
+test_script:
+  - cmd: dotnet test src/Turbocharged.Beanstalk.Tests/Turbocharged.Beanstalk.Tests.csproj
+
+after_build:
+  - cmd: dotnet pack src/Turbocharged.Beanstalk/Turbocharged.Beanstalk.csproj --configuration Release
+
+artifacts:
+  - path: '**/*.nupkg'
