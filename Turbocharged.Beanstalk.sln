@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApp", "SampleApp\SampleApp.csproj", "{C0FF45ED-3EF9-4FC2-92D0-C5302AA2EB9D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApp", "src\SampleApp\SampleApp.csproj", "{C0FF45ED-3EF9-4FC2-92D0-C5302AA2EB9D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Turbocharged.Beanstalk.Tests", "Turbocharged.Beanstalk.Tests\Turbocharged.Beanstalk.Tests.csproj", "{84667450-5F08-4694-B254-C4FC7DAF740C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Turbocharged.Beanstalk.Tests", "src\Turbocharged.Beanstalk.Tests\Turbocharged.Beanstalk.Tests.csproj", "{84667450-5F08-4694-B254-C4FC7DAF740C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Turbocharged.Beanstalk", "Turbocharged.Beanstalk\Turbocharged.Beanstalk.csproj", "{6644F4C6-2351-4DDA-9D45-A50B791707FF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Turbocharged.Beanstalk", "src\Turbocharged.Beanstalk\Turbocharged.Beanstalk.csproj", "{6644F4C6-2351-4DDA-9D45-A50B791707FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
