@@ -4,7 +4,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>Turbocharged.Beanstalk</PackageId>
-    <Version>0.5.0</Version>
+    <Version>0.5.0$(VersionSuffix)</Version>
     <Authors>Stephen Jennings</Authors>
     <Description>A Beanstalk client filled with async happiness.</Description>
   </PropertyGroup>
