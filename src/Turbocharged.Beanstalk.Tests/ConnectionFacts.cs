@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -24,8 +23,8 @@ namespace Turbocharged.Beanstalk.Tests
 
         public ConnectionFacts()
         {
-            hostname = Environment.GetEnvironmentVariable("BEANSTALK_HOSTNAME") ?? ConfigurationManager.AppSettings["Hostname"];
-            port = Convert.ToInt32(Environment.GetEnvironmentVariable("BEANSTALK_PORT") ?? ConfigurationManager.AppSettings["Port"]);
+            hostname = Settings.BeanstalkHostName;
+            port = Settings.BeanstalkPort;
             connectionString = string.Format("{0}:{1}", hostname, port);
         }
 
@@ -540,7 +539,7 @@ namespace Turbocharged.Beanstalk.Tests
             Assert.Equal(JobState.Buried, stat.State);
         }
 
-        [Theory(Skip = "This test occasionally fails, especially in AppVeyor. I think it's due to timing of the worker getting shut down.")]
+        [Theory]
         [InlineData(WorkerFailureBehavior.Delete)]
         [InlineData(WorkerFailureBehavior.Bury)]
         [InlineData(WorkerFailureBehavior.Release)]

@@ -13,7 +13,7 @@ namespace Turbocharged.Beanstalk.Tests
         [Fact]
         public void EnsureNoAsyncVoidTests()
         {
-            AssertNoAsyncVoidMethods(GetType().Assembly);
+            AssertNoAsyncVoidMethods(GetType().GetTypeInfo().Assembly);
         }
 
         static void AssertNoAsyncVoidMethods(Assembly assembly)

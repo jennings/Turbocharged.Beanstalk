@@ -1,0 +1,4 @@
+{
+    "beanstalk.hostname": "localhost",
+    "beanstalk.port": 11300
+}
