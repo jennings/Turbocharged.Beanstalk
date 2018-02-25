@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -26,7 +27,7 @@ namespace Turbocharged.Beanstalk
                 .ToASCIIByteArray();
         }
 
-        public void Process(string firstLine, NetworkStream stream)
+        public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {
             var parts = firstLine.Split(' ');
             if (parts.Length == 2 && parts[0] == "WATCHING")
@@ -36,7 +37,7 @@ namespace Turbocharged.Beanstalk
             }
             else
             {
-                Reply.SetGeneralException(_tcs, firstLine, "watch");
+                Reply.SetGeneralException(_tcs, firstLine, "watch", logger);
             }
         }
 

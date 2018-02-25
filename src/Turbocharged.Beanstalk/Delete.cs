@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -24,7 +25,7 @@ namespace Turbocharged.Beanstalk
             return "delete {0}\r\n".FormatWith(_id).ToASCIIByteArray();
         }
 
-        public void Process(string firstLine, NetworkStream stream)
+        public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {
             switch (firstLine)
             {
@@ -41,7 +42,7 @@ namespace Turbocharged.Beanstalk
                     return;
 
                 default:
-                    Reply.SetGeneralException(_tcs, firstLine, "delete");
+                    Reply.SetGeneralException(_tcs, firstLine, "delete", logger);
                     return;
             }
         }

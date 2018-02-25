@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -12,23 +13,29 @@ namespace Turbocharged.Beanstalk
 {
     class PhysicalConnection : IDisposable
     {
-        TcpClient _client;
+        readonly ILogger _logger;
+        readonly TcpClient _client;
         NetworkStream _stream;
         IDisposable _receiveTask;
-        SemaphoreSlim _insertionLock = new SemaphoreSlim(1, 1);
+        readonly SemaphoreSlim _insertionLock = new SemaphoreSlim(1, 1);
 
         BlockingCollection<Request> _requestsAwaitingResponse =
             new BlockingCollection<Request>(new ConcurrentQueue<Request>());
 
-        PhysicalConnection()
+        PhysicalConnection() : this(null)
         {
+        }
+
+        PhysicalConnection(ILogger logger)
+        {
+            _logger = logger;
             _client = new TcpClient();
         }
 
-        public static async Task<PhysicalConnection> ConnectAsync(string hostname, int port)
+        public static async Task<PhysicalConnection> ConnectAsync(string hostname, int port, ILogger logger)
         {
-            Trace.Verbose("New PhysicalConnection to {0}:{1}", hostname, port);
-            var conn = new PhysicalConnection();
+            logger?.LogDebug("Connecting to {Hostname}:{Port}", hostname, port);
+            var conn = new PhysicalConnection(logger);
             await conn._client.ConnectAsync(hostname, port).ConfigureAwait(false);
             conn._stream = conn._client.GetStream();
             var cts = new CancellationTokenSource();
@@ -48,7 +55,7 @@ namespace Turbocharged.Beanstalk
 
         public void Dispose()
         {
-            Trace.Info("Disposing PhysicalConnection");
+            _logger?.LogTrace("Disposing PhysicalConnection");
             using (_client)
             using (_stream)
             {
@@ -63,7 +70,7 @@ namespace Turbocharged.Beanstalk
             try
             {
                 var data = request.ToByteArray();
-                Trace.Info("Sending {0}, Length = {1} bytes", request.GetType().Name, data.Length);
+                _logger?.LogDebug("Sending command {Command} with length {Length} bytes", request.GetType().Name, data.Length);
                 _requestsAwaitingResponse.Add(request);
                 await _stream.WriteAsync(data, 0, data.Length, cancellationToken).ConfigureAwait(false);
             }
@@ -93,17 +100,17 @@ namespace Turbocharged.Beanstalk
                     {
                         // We have a line, make it a string and send it to whoever is waiting for it.
                         var incoming = buffer.ToASCIIString(0, pos - 1);
-                        Trace.Verbose("Received: `{0}`", incoming);
+                        _logger?.LogTrace("Received {Response}", incoming);
                         var request = _requestsAwaitingResponse.Take(token);
                         try
                         {
-                            Trace.Info("Processing {0}", request.GetType().Name);
-                            request.Process(incoming, _stream);
+                            _logger?.LogTrace("Processing {Request}", request.GetType().Name);
+                            request.Process(incoming, _stream, _logger);
                         }
                         catch (Exception ex)
                         {
                             // How rude
-                            Trace.Error("Request {0} threw {1}: {2}", request.GetType().Name, ex.GetType().Name, ex.Message);
+                            _logger?.LogError(0, ex, "Unhandled exception while processing {Request}", request.GetType().Name);
                         }
                         pos = 0; // Overwrite the buffer on the next go-round
                         continue;
@@ -111,7 +118,7 @@ namespace Turbocharged.Beanstalk
                     else if (pos == firstLineMaxLength)
                     {
                         // Oops
-                        Trace.Error("Exceeded {0} byte receive buffer", buffer.Length);
+                        _logger?.LogError("Exceeded buffer with length {Length} when reading from socket, terminating connection", buffer.Length);
                         break;
                     }
                     pos++;
@@ -120,9 +127,9 @@ namespace Turbocharged.Beanstalk
             catch (Exception ex)
             {
                 if (ex is ObjectDisposedException)
-                    Trace.Info("Receive loop ending due to disposed stream");
+                    _logger?.LogTrace("Receive loop ending due to disposed stream");
                 else
-                    Trace.Error("Receive loop threw {1}: {2}", ex.GetType().Name, ex.Message);
+                    _logger?.LogError(0, ex, "Unahndled exception in socket receive loop");
             }
 
             // No way to really recover from exiting this loop
@@ -134,10 +141,11 @@ namespace Turbocharged.Beanstalk
         {
             // TODO: Probably make BeanstalkConnection establish a new connection
             //       and migrate all un-popped requests to the new connection
-            Trace.Info("Draining reactor");
+            _logger?.LogTrace("Draining reactor");
             Request request;
             while (_requestsAwaitingResponse.TryTake(out request))
             {
+                _logger?.LogTrace("Cancelling {Request} request", request.GetType().Name);
                 request.Cancel();
             }
         }

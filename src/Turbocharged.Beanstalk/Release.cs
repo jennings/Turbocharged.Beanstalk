@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -28,7 +29,7 @@ namespace Turbocharged.Beanstalk
             return "release {0} {1} {2}\r\n".FormatWith(_id, _priority, _delay).ToASCIIByteArray();
         }
 
-        public void Process(string firstLine, NetworkStream stream)
+        public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {
             switch (firstLine)
             {
@@ -44,7 +45,7 @@ namespace Turbocharged.Beanstalk
                     return;
 
                 default:
-                    Reply.SetGeneralException(_tcs, firstLine, "release");
+                    Reply.SetGeneralException(_tcs, firstLine, "release", logger);
                     return;
             }
         }

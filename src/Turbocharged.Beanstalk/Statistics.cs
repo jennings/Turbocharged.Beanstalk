@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace Turbocharged.Beanstalk
             return "stats\r\n".ToASCIIByteArray();
         }
 
-        public void Process(string firstLine, NetworkStream stream)
+        public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {
             var parts = firstLine.Split(new[] { ' ' }, 3, StringSplitOptions.RemoveEmptyEntries);
             switch (parts[0])
@@ -98,13 +99,13 @@ namespace Turbocharged.Beanstalk
                     }
                     catch (Exception ex)
                     {
-                        Trace.Error("StatsticsRequest threw {0}: {1}", ex.GetType().Name, ex.Message);
+                        logger?.LogError(0, ex, "Unhandled exception while processing {Request}", GetType().Name);
                         _tcs.SetException(ex);
                         return;
                     }
 
                 default:
-                    Reply.SetGeneralException(_tcs, firstLine, "stats");
+                    Reply.SetGeneralException(_tcs, firstLine, "stats", logger);
                     return;
             }
         }

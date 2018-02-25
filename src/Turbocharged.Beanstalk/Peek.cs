@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -53,7 +54,7 @@ namespace Turbocharged.Beanstalk
             }
         }
 
-        public void Process(string firstLine, NetworkStream stream)
+        public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {
             var parts = firstLine.Split(new[] { ' ' }, 3, StringSplitOptions.RemoveEmptyEntries);
             switch (parts[0])
@@ -79,11 +80,11 @@ namespace Turbocharged.Beanstalk
                                       _state == JobState.Buried ? "peek-buried" :
                                       _state == JobState.Delayed ? "peek-delayed" :
                                       "unknown peek";
-                        Reply.SetGeneralException(_tcs, firstLine, command);
+                        Reply.SetGeneralException(_tcs, firstLine, command, logger);
                     }
                     else
                     {
-                        Reply.SetGeneralException(_tcs, firstLine, "peek");
+                        Reply.SetGeneralException(_tcs, firstLine, "peek", logger);
                     }
                     return;
             }

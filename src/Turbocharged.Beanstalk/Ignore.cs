@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -26,7 +27,7 @@ namespace Turbocharged.Beanstalk
                 .ToASCIIByteArray();
         }
 
-        public void Process(string firstLine, NetworkStream stream)
+        public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(firstLine))
             {

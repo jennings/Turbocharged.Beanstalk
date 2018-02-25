@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -41,7 +42,7 @@ namespace Turbocharged.Beanstalk
                 return "reserve\r\n".ToASCIIByteArray();
         }
 
-        public void Process(string firstLine, NetworkStream stream)
+        public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {
             var parts = firstLine.Split(new[] { ' ' }, 3, StringSplitOptions.RemoveEmptyEntries);
             switch (parts[0])
@@ -66,7 +67,7 @@ namespace Turbocharged.Beanstalk
 
                 default:
                     var command = _timeout.HasValue ? "reserve-with-timeout" : "reserve";
-                    Reply.SetGeneralException(_tcs, firstLine, command);
+                    Reply.SetGeneralException(_tcs, firstLine, command, logger);
                     return;
             }
         }

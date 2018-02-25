@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -31,8 +32,7 @@ namespace Turbocharged.Beanstalk
         static async Task<BeanstalkConnection> ConnectAsync(ConnectionConfiguration config)
         {
             var connection = new BeanstalkConnection(config);
-            Trace.Info("Connecting BeanstalkConnection to '{0}'", config);
-            connection._connection = await PhysicalConnection.ConnectAsync(config.Hostname, config.Port).ConfigureAwait(false); // Yo dawg
+            connection._connection = await PhysicalConnection.ConnectAsync(config.Hostname, config.Port, config.Logger).ConfigureAwait(false); // Yo dawg
             return connection;
         }
 
@@ -228,7 +228,7 @@ namespace Turbocharged.Beanstalk
             var c = Interlocked.Exchange(ref _connection, null);
             if (c != null)
             {
-                Trace.Info("Disposing BeanstalkConnection");
+                Configuration.Logger?.LogTrace("Disposing BeanstalkConnection");
                 c.Dispose();
             }
         }

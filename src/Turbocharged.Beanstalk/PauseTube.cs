@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -26,14 +27,14 @@ namespace Turbocharged.Beanstalk
             return "pause-tube {0} {1}\r\n".FormatWith(_tube.Name, _seconds).ToASCIIByteArray();
         }
 
-        public void Process(string firstLine, NetworkStream stream)
+        public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {
             switch (firstLine)
             {
                 case "PAUSED": _tcs.SetResult(true); return;
                 case "NOT_FOUND": _tcs.SetResult(false); return;
                 default:
-                    Reply.SetGeneralException(_tcs, firstLine, "pause-tube");
+                    Reply.SetGeneralException(_tcs, firstLine, "pause-tube", logger);
                     return;
             }
         }

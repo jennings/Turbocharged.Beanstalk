@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -24,7 +25,7 @@ namespace Turbocharged.Beanstalk
             return "kick {0}\r\n".FormatWith(_count).ToASCIIByteArray();
         }
 
-        public void Process(string firstLine, NetworkStream stream)
+        public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {
             var parts = firstLine.Split(new[] { ' ' }, 3, StringSplitOptions.RemoveEmptyEntries);
 
@@ -37,7 +38,7 @@ namespace Turbocharged.Beanstalk
                     return;
                 }
             }
-            Reply.SetGeneralException(_tcs, firstLine, "kick");
+            Reply.SetGeneralException(_tcs, firstLine, "kick", logger);
         }
 
         public void Cancel()

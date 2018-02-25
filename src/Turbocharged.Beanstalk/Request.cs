@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -10,7 +11,7 @@ namespace Turbocharged.Beanstalk
     interface Request
     {
         byte[] ToByteArray();
-        void Process(string firstLine, NetworkStream stream);
+        void Process(string firstLine, NetworkStream stream, ILogger logger);
         void Cancel();
     }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -43,7 +44,7 @@ namespace Turbocharged.Beanstalk
                 .ToArray();
         }
 
-        public void Process(string firstLine, NetworkStream stream)
+        public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {
             var parts = firstLine.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
             switch (parts[0])
@@ -67,7 +68,7 @@ namespace Turbocharged.Beanstalk
                     return;
 
                 default:
-                    Reply.SetGeneralException(_tcs, firstLine, "put");
+                    Reply.SetGeneralException(_tcs, firstLine, "put", logger);
                     return;
             }
         }

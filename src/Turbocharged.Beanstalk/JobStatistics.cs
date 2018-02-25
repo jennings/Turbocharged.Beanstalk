@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace Turbocharged.Beanstalk
             return "stats-job {0}\r\n".FormatWith(_id).ToASCIIByteArray();
         }
 
-        public void Process(string firstLine, NetworkStream stream)
+        public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {
             var parts = firstLine.Split(new[] { ' ' }, 3, StringSplitOptions.RemoveEmptyEntries);
             switch (parts[0])
@@ -77,7 +78,7 @@ namespace Turbocharged.Beanstalk
                     return;
 
                 default:
-                    Reply.SetGeneralException(_tcs, firstLine, "stats-job");
+                    Reply.SetGeneralException(_tcs, firstLine, "stats-job", logger);
                     return;
             }
         }
