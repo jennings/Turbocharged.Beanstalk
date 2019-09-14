@@ -556,7 +556,12 @@ namespace Turbocharged.Beanstalk.Tests
 
             bool gotInsideWorkerFunc = false;
 
-            var options = new WorkerOptions { Tubes = { "watched" }, FailureBehavior = behavior, FailureReleaseDelay = TenSeconds };
+            var options = new WorkerOptions
+            {
+                Tubes = { "watched" },
+                FailureBehavior = behavior,
+                FailureReleaseDelay = TenSeconds,
+            };
             var worker = BeanstalkConnection.ConnectWorkerAsync<Jobject>(configuration, options, async (c, _) =>
             {
                 gotInsideWorkerFunc = true;
@@ -568,18 +573,18 @@ namespace Turbocharged.Beanstalk.Tests
             {
                 jobId = await prod.PutAsync(new byte[] { }, 1, TenSeconds, ZeroSeconds);
                 await Task.Delay(200);
-            }
 
-            Assert.False(gotInsideWorkerFunc);
+                Assert.False(gotInsideWorkerFunc);
 
-            var stats = await prod.JobStatisticsAsync(jobId);
-            switch (behavior)
-            {
-                case WorkerFailureBehavior.Delete: Assert.Null(stats); return;
-                case WorkerFailureBehavior.Bury: Assert.Equal(JobState.Buried, stats.State); return;
-                case WorkerFailureBehavior.Release: Assert.Equal(JobState.Delayed, stats.State); return;
-                case WorkerFailureBehavior.NoAction: Assert.Equal(JobState.Reserved, stats.State); return;
-                default: throw new Exception("Untested behavior");
+                var stats = await prod.JobStatisticsAsync(jobId);
+                switch (behavior)
+                {
+                    case WorkerFailureBehavior.Delete: Assert.Null(stats); return;
+                    case WorkerFailureBehavior.Bury: Assert.Equal(JobState.Buried, stats.State); return;
+                    case WorkerFailureBehavior.Release: Assert.Equal(JobState.Delayed, stats.State); return;
+                    case WorkerFailureBehavior.NoAction: Assert.Equal(JobState.Reserved, stats.State); return;
+                    default: throw new Exception("Untested behavior: " + behavior);
+                }
             }
         }
 
