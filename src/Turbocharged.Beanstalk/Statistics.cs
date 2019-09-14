@@ -21,8 +21,10 @@ namespace Turbocharged.Beanstalk
 
         public byte[] ToByteArray()
         {
-            return "stats\r\n".ToASCIIByteArray();
+            return STATS;
         }
+
+        static readonly byte[] STATS = "stats\r\n".ToASCIIByteArray();
 
         public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {

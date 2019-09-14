@@ -16,8 +16,10 @@ namespace Turbocharged.Beanstalk
 
         public byte[] ToByteArray()
         {
-            return "list-tubes-watched\r\n".ToASCIIByteArray();
+            return LIST_TUBES_WATCHED;
         }
+
+        static readonly byte[] LIST_TUBES_WATCHED = "list-tubes-watched\r\n".ToASCIIByteArray();
 
         public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {

@@ -39,11 +39,11 @@ namespace Turbocharged.Beanstalk
                 switch (_state)
                 {
                     case JobState.Ready:
-                        return "peek-ready\r\n".ToASCIIByteArray();
+                        return PEEK_READY;
                     case JobState.Delayed:
-                        return "peek-delayed\r\n".ToASCIIByteArray();
+                        return PEEK_DELAYED;
                     case JobState.Buried:
-                        return "peek-buried\r\n".ToASCIIByteArray();
+                        return PEEK_BURIED;
                     default:
                         throw new NotSupportedException("Cannot peek jobs in state " + _state.ToString());
                 }
@@ -53,6 +53,10 @@ namespace Turbocharged.Beanstalk
                 return "peek {0}\r\n".FormatWith(_id).ToASCIIByteArray();
             }
         }
+
+        static readonly byte[] PEEK_READY = "peek-ready\r\n".ToASCIIByteArray();
+        static readonly byte[] PEEK_DELAYED = "peek-delayed\r\n".ToASCIIByteArray();
+        static readonly byte[] PEEK_BURIED = "peek-buried\r\n".ToASCIIByteArray();
 
         public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {

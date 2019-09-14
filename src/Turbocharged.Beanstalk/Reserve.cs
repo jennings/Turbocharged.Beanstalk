@@ -39,8 +39,10 @@ namespace Turbocharged.Beanstalk
             if (_timeout.HasValue)
                 return "reserve-with-timeout {0}\r\n".FormatWith((int)_timeout.Value.TotalSeconds).ToASCIIByteArray();
             else
-                return "reserve\r\n".ToASCIIByteArray();
+                return RESERVE;
         }
+
+        static readonly byte[] RESERVE = "reserve\r\n".ToASCIIByteArray();
 
         public void Process(string firstLine, NetworkStream stream, ILogger logger)
         {
