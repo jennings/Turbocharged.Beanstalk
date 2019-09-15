@@ -450,25 +450,31 @@ namespace Turbocharged.Beanstalk.Tests
         {
             await ConnectAsync();
 
-            int counter = 0;
+            const int MESSAGE_COUNT = 10;
             int wrongContextCount = 0;
             SynchronizationContext startingContext = SynchronizationContext.Current;
             var options = new WorkerOptions { };
+            var countdown = new CountdownEvent(MESSAGE_COUNT);
             var worker = BeanstalkConnection.ConnectWorkerAsync(connectionString, options, async (c, job) =>
             {
-                counter++;
-                if (startingContext != SynchronizationContext.Current) wrongContextCount++;
+                countdown.Signal();
+                if (startingContext != SynchronizationContext.Current)
+                {
+                    wrongContextCount++;
+                }
                 await c.DeleteAsync();
             });
 
             using (await worker)
             {
-                foreach (var _ in Enumerable.Repeat(0, 10))
-                    await prod.PutAsync(new byte[] { }, 1, TenSeconds, ZeroSeconds);
-                await Task.Delay(100);
+                foreach (var n in Enumerable.Repeat(0, MESSAGE_COUNT))
+                {
+                    await prod.PutAsync(BitConverter.GetBytes(n), 1, TenSeconds, ZeroSeconds);
+                }
+                var consumedAllMessages = countdown.Wait(TimeSpan.FromSeconds(10));
+                Assert.True(consumedAllMessages, $"Did not consume all messages, remaining: {countdown.CurrentCount}");
             }
 
-            Assert.NotEqual(0, counter);
             Assert.Equal(0, wrongContextCount);
         }
 
