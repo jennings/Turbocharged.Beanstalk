@@ -1,11 +1,19 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Turbocharged.Beanstalk.Tests", "src\Turbocharged.Beanstalk.Tests\Turbocharged.Beanstalk.Tests.csproj", "{84667450-5F08-4694-B254-C4FC7DAF740C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Turbocharged.Beanstalk.Tests", "src\Turbocharged.Beanstalk.Tests\Turbocharged.Beanstalk.Tests.csproj", "{84667450-5F08-4694-B254-C4FC7DAF740C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Turbocharged.Beanstalk", "src\Turbocharged.Beanstalk\Turbocharged.Beanstalk.csproj", "{6644F4C6-2351-4DDA-9D45-A50B791707FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Turbocharged.Beanstalk", "src\Turbocharged.Beanstalk\Turbocharged.Beanstalk.csproj", "{6644F4C6-2351-4DDA-9D45-A50B791707FF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DD3601B9-6740-4A10-83A7-D280FB8DFFC0}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		docker-compose.yml = docker-compose.yml
+		LICENSE.md = LICENSE.md
+		Makefile = Makefile
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +23,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{84667450-5F08-4694-B254-C4FC7DAF740C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -44,5 +49,11 @@ Global
 		{6644F4C6-2351-4DDA-9D45-A50B791707FF}.Release|x64.Build.0 = Release|x64
 		{6644F4C6-2351-4DDA-9D45-A50B791707FF}.Release|x86.ActiveCfg = Release|x86
 		{6644F4C6-2351-4DDA-9D45-A50B791707FF}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D6FE3AB0-D4AA-49AF-A1CA-6EC792C9D061}
 	EndGlobalSection
 EndGlobal

@@ -16,7 +16,7 @@ namespace Turbocharged.Beanstalk
 
         public ConnectionConfiguration()
         {
-            JobSerializer = new NewtonsoftJsonJobSerializer();
+            JobSerializer = new SystemTextJsonJobSerializer();
         }
 
         public static ConnectionConfiguration Parse(string connectionString)

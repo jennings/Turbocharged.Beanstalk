@@ -42,7 +42,7 @@ namespace Turbocharged.Beanstalk.Tests
             if (prod != null) prod.Dispose();
         }
 
-        public async Task ConnectAsync()
+        async Task ConnectAsync()
         {
             prod = await BeanstalkConnection.ConnectProducerAsync(config);
             cons = await BeanstalkConnection.ConnectConsumerAsync(config);
@@ -190,8 +190,8 @@ namespace Turbocharged.Beanstalk.Tests
         {
             var jobs = new[]
             {
-                new Job(1, Encoding.Unicode.GetBytes(@"{ 'Int': 1, 'String': 'hello' }")),
-                new Job(2, Encoding.Unicode.GetBytes(@"{ 'Int': 2, 'String': 'world' }")),
+                new Job(1, Encoding.UTF8.GetBytes(@"{ ""Int"": 1, ""String"": ""hello"" }")),
+                new Job(2, Encoding.UTF8.GetBytes(@"{ ""Int"": 2, ""String"": ""world"" }")),
             };
             var fake = new FakeConsumer(jobs);
 
