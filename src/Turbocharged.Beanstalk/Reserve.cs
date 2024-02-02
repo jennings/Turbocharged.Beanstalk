@@ -77,11 +77,18 @@ namespace Turbocharged.Beanstalk
         internal static bool TryGetJobFromBuffer(int id, NetworkStream stream, int bytes, out Job job)
         {
             var buffer = new byte[bytes];
-            var readBytes = stream.Read(buffer, 0, bytes);
-            if (readBytes != bytes)
+            var offset = 0;
+            var remainingBytes = bytes;
+            while (remainingBytes > 0)
             {
-                job = null;
-                return false;
+                var readBytes = stream.Read(buffer, offset, remainingBytes);
+                if (readBytes <= 0)
+                {
+                    job = null;
+                    return false;
+                }
+                remainingBytes -= readBytes;
+                offset += readBytes;
             }
             stream.ReadByte(); // CR
             stream.ReadByte(); // LF
